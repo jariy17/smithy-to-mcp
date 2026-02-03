@@ -89,19 +89,102 @@ Creates `weather-service.json` as a starting point.
    npx smithy-to-mcp serve aws:bedrock-agent-runtime
    ```
 
-3. **Add to Claude Desktop** (optional)
+3. **Add to your MCP client** - See [MCP Client Integration](#mcp-client-integration) below
 
-   Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
-   ```json
-   {
-     "mcpServers": {
-       "bedrock-agentcore": {
-         "command": "npx",
-         "args": ["smithy-to-mcp", "serve", "aws:bedrock-agent-runtime"]
-       }
-     }
-   }
-   ```
+## MCP Client Integration
+
+### Claude Code
+
+Add to your Claude Code MCP settings file (`~/.claude/settings.json`):
+
+```json
+{
+  "mcpServers": {
+    "bedrock-agent-runtime": {
+      "command": "npx",
+      "args": ["smithy-to-mcp", "serve", "aws:bedrock-agent-runtime"],
+      "env": {
+        "AWS_REGION": "us-east-1"
+      }
+    }
+  }
+}
+```
+
+Or add multiple AWS services:
+
+```json
+{
+  "mcpServers": {
+    "s3": {
+      "command": "npx",
+      "args": ["smithy-to-mcp", "serve", "aws:s3"]
+    },
+    "dynamodb": {
+      "command": "npx",
+      "args": ["smithy-to-mcp", "serve", "aws:dynamodb"]
+    },
+    "lambda": {
+      "command": "npx",
+      "args": ["smithy-to-mcp", "serve", "aws:lambda"]
+    }
+  }
+}
+```
+
+### Kiro CLI
+
+Add to your Kiro MCP configuration file (`~/.kiro/settings/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "bedrock-agent-runtime": {
+      "command": "npx",
+      "args": ["smithy-to-mcp", "serve", "aws:bedrock-agent-runtime"],
+      "env": {
+        "AWS_REGION": "us-east-1"
+      }
+    }
+  }
+}
+```
+
+### Claude Desktop
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+```json
+{
+  "mcpServers": {
+    "bedrock-agent-runtime": {
+      "command": "npx",
+      "args": ["smithy-to-mcp", "serve", "aws:bedrock-agent-runtime"],
+      "env": {
+        "AWS_REGION": "us-east-1"
+      }
+    }
+  }
+}
+```
+
+### Custom Smithy Models
+
+For local Smithy files, use the absolute path:
+
+```json
+{
+  "mcpServers": {
+    "my-api": {
+      "command": "npx",
+      "args": ["smithy-to-mcp", "serve", "/path/to/my-model.json"],
+      "env": {
+        "API_BASE_URL": "https://api.example.com"
+      }
+    }
+  }
+}
+```
 
 ### Other AWS Services
 

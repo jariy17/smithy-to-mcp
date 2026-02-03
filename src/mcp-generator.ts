@@ -1,4 +1,5 @@
 import { ParsedService, ParsedOperation, JsonSchema, ParsedMember, WaiterConfig, ExampleValue } from "./smithy-parser.js";
+import { operationToToolName, waiterNameToToolName, stripHtml, escapeStringForJs } from "./utils.js";
 
 export interface GeneratorOptions {
   serverName?: string;
