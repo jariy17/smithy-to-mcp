@@ -113,13 +113,67 @@ server.registerTool(
 
 ## Supported Smithy features
 
-- Service operations
-- Resource CRUD operations (create, read, update, delete, list)
-- HTTP bindings (httpLabel, httpQuery, httpHeader, httpPayload)
-- Structures, lists, maps, unions, enums
-- String constraints (length, pattern)
-- Number constraints (min, max)
-- Documentation traits
+### Shapes
+- `service` - with operations and resources
+- `resource` - CRUD lifecycle (create, read, update, delete, list) + operations + collectionOperations + nested resources
+- `operation` - with input/output/errors
+- `structure`, `list`, `map`, `union`, `enum`, `intEnum`
+- Primitive types: `string`, `boolean`, `byte`, `short`, `integer`, `long`, `float`, `double`, `bigInteger`, `bigDecimal`, `timestamp`, `blob`, `document`
+
+### Traits
+| Trait | Purpose |
+|-------|---------|
+| `@documentation` | Descriptions for tools and fields |
+| `@required` | Required fields in Zod schemas |
+| `@http` | HTTP method and URI template |
+| `@httpLabel` | Path parameters |
+| `@httpQuery` | Query string parameters |
+| `@httpHeader` | Request headers |
+| `@httpPrefixHeaders` | Header prefix mapping |
+| `@httpPayload` | Request body payload |
+| `@length` | String min/max length validation |
+| `@pattern` | String regex validation |
+| `@range` | Number min/max validation |
+| `@default` | Default values in Zod schemas |
+| `@jsonName` | Wire name for JSON serialization |
+| `@paginated` | Pagination config (shown in tool description) |
+| `@enumValue` | Enum wire values |
+| `aws.api#service` | AWS endpoint prefix detection |
+| `aws.auth#sigv4` | AWS SigV4 signing detection |
+| `aws.protocols#restJson1` | Protocol detection |
+
+## Not yet supported
+
+The following Smithy features are not yet parsed:
+
+### Traits
+| Trait | Purpose |
+|-------|---------|
+| `@sensitive` | Mark sensitive data (could redact in logs) |
+| `@deprecated` | Deprecation warnings |
+| `@idempotencyToken` | Auto-generate UUID tokens |
+| `@streaming` | Streaming request/response bodies |
+| `@httpQueryParams` | Sparse map to query params |
+| `@httpResponseCode` | Response code binding |
+| `@hostLabel` | Custom endpoint hostnames |
+| `@httpChecksum` | Checksum requirements |
+| `@xmlName`, `@xmlAttribute`, `@xmlNamespace` | XML formatting |
+| `@mediaType` | Content type hints |
+| `@eventPayload`, `@eventHeader` | Event streams |
+| `@waiters` | Polling/waiter configurations |
+| `@retryable` | Retry hints |
+| `@examples` | Usage examples |
+| `@externalDocumentation` | External doc links |
+| `@tags` | Resource tagging |
+| `@unstable`, `@internal` | Stability markers |
+
+### Features
+- Mixins (shape composition)
+- Apply statements (external trait application)
+- Auto-pagination (currently just shows pagination fields in description)
+- Streaming bodies
+- Event streams
+- Waiters
 
 ## Pre-generated examples
 
