@@ -2,7 +2,7 @@
 /**
  * MCP Server generated from Smithy model
  * Service: AmazonBedrockAgentCoreControl
- * Generated at: 2026-02-03T02:19:47.055Z
+ * Generated at: 2026-02-03T02:22:56.154Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -28,7 +28,7 @@ async function callApi<T>(
   path: string,
   body?: unknown,
   pathParams?: Record<string, string>,
-  queryParams?: Record<string, string>
+  queryParams?: Record<string, string | undefined>
 ): Promise<T> {
   // Replace path parameters
   let resolvedPath = path;
@@ -139,7 +139,7 @@ server.registerTool(
   {
     description: "<p>Retrieves information about a token vault.</p>",
     inputSchema: z.object({
-    tokenVaultId: z.string().min(1).max(64).regex(/^[a-zA-Z0-9\-_]+$/).optional(),
+    tokenVaultId: z.string().min(1).max(64).regex(new RegExp("^[a-zA-Z0-9\\-_]+$")).optional(),
   }),
   },
   async (params) => {
@@ -167,7 +167,7 @@ server.registerTool(
   {
     description: "<p>Lists the tags associated with the specified resource.</p> <note> <p>This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.</p> </note>",
     inputSchema: z.object({
-    resourceArn: z.string().min(20).max(1011).regex(/^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$/),
+    resourceArn: z.string().min(20).max(1011).regex(new RegExp("^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$")),
   }),
   },
   async (params) => {
@@ -227,8 +227,8 @@ server.registerTool(
   {
     description: "<p>Sets the customer master key (CMK) for a token vault.</p>",
     inputSchema: z.object({
-    tokenVaultId: z.string().min(1).max(64).regex(/^[a-zA-Z0-9\-_]+$/).optional(),
-    kmsConfiguration: z.object({ keyType: z.enum(["CustomerManagedKey", "ServiceManagedKey"]), kmsKeyArn: z.string().min(1).max(2048).regex(/^arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$/).optional() }),
+    tokenVaultId: z.string().min(1).max(64).regex(new RegExp("^[a-zA-Z0-9\\-_]+$")).optional(),
+    kmsConfiguration: z.object({ keyType: z.enum(["CustomerManagedKey", "ServiceManagedKey"]), kmsKeyArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$")).optional() }),
   }),
   },
   async (params) => {
@@ -257,8 +257,8 @@ server.registerTool(
   {
     description: "<p>Associates the specified tags to a resource with the specified resourceArn. If existing tags on a resource are not specified in the request parameters, they are not changed. When a resource is deleted, the tags associated with that resource are also deleted.</p> <note> <p>This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.</p> </note>",
     inputSchema: z.object({
-    resourceArn: z.string().min(20).max(1011).regex(/^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$/),
-    tags: z.record(z.string(), z.string().min(0).max(256).regex(/^[a-zA-Z0-9\s._:/=+@-]*$/)),
+    resourceArn: z.string().min(20).max(1011).regex(new RegExp("^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$")),
+    tags: z.record(z.string(), z.string().min(0).max(256).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"))),
   }),
   },
   async (params) => {
@@ -289,8 +289,8 @@ server.registerTool(
   {
     description: "<p>Removes the specified tags from the specified resource.</p> <note> <p>This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.</p> </note>",
     inputSchema: z.object({
-    resourceArn: z.string().min(20).max(1011).regex(/^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$/),
-    tagKeys: z.array(z.string().min(1).max(128).regex(/^[a-zA-Z0-9\s._:/=+@-]*$/)),
+    resourceArn: z.string().min(20).max(1011).regex(new RegExp("^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$")),
+    tagKeys: z.array(z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"))),
   }),
   },
   async (params) => {

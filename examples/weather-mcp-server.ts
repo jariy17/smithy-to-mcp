@@ -2,7 +2,7 @@
 /**
  * MCP Server generated from Smithy model
  * Service: WeatherService
- * Generated at: 2026-02-03T02:19:45.782Z
+ * Generated at: 2026-02-03T02:22:57.291Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -28,7 +28,7 @@ async function callApi<T>(
   path: string,
   body?: unknown,
   pathParams?: Record<string, string>,
-  queryParams?: Record<string, string>
+  queryParams?: Record<string, string | undefined>
 ): Promise<T> {
   // Replace path parameters
   let resolvedPath = path;

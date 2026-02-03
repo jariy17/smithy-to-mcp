@@ -2,7 +2,7 @@
 /**
  * MCP Server generated from Smithy model
  * Service: AmazonBedrockAgentCore
- * Generated at: 2026-02-03T02:19:46.408Z
+ * Generated at: 2026-02-03T02:22:56.794Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -28,7 +28,7 @@ async function callApi<T>(
   path: string,
   body?: unknown,
   pathParams?: Record<string, string>,
-  queryParams?: Record<string, string>
+  queryParams?: Record<string, string | undefined>
 ): Promise<T> {
   // Replace path parameters
   let resolvedPath = path;
@@ -83,8 +83,8 @@ server.registerTool(
   {
     description: "<p>Confirms the user authentication session for obtaining OAuth2.0 tokens for a resource.</p>",
     inputSchema: z.object({
-    userIdentifier: z.union([z.object({ userToken: z.string().min(1).max(131072).regex(/^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+$/) }), z.object({ userId: z.string().min(1).max(128) })]),
-    sessionUri: z.string().min(1).max(1024).regex(/^urn:ietf:params:oauth:request_uri:[a-zA-Z0-9-._~]+$/),
+    userIdentifier: z.union([z.object({ userToken: z.string().min(1).max(131072).regex(new RegExp("^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+$")) }), z.object({ userId: z.string().min(1).max(128) })]),
+    sessionUri: z.string().min(1).max(1024).regex(new RegExp("^urn:ietf:params:oauth:request_uri:[a-zA-Z0-9-._~]+$")),
   }),
   },
   async (params) => {
@@ -114,7 +114,7 @@ server.registerTool(
     description: "<p>Retrieves the API key associated with an API key credential provider.</p>",
     inputSchema: z.object({
     workloadIdentityToken: z.string().min(1).max(131072),
-    resourceCredentialProviderName: z.string().min(1).max(128).regex(/^[a-zA-Z0-9\-_]+$/),
+    resourceCredentialProviderName: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\-_]+$")),
   }),
   },
   async (params) => {
@@ -144,11 +144,11 @@ server.registerTool(
     description: "<p>Returns the OAuth 2.0 token of the provided resource.</p>",
     inputSchema: z.object({
     workloadIdentityToken: z.string().min(1).max(131072),
-    resourceCredentialProviderName: z.string().min(1).max(128).regex(/^[a-zA-Z0-9\-_]+$/),
+    resourceCredentialProviderName: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\-_]+$")),
     scopes: z.array(z.string().min(1).max(128)),
     oauth2Flow: z.enum(["USER_FEDERATION", "M2M"]),
-    sessionUri: z.string().min(1).max(1024).regex(/^urn:ietf:params:oauth:request_uri:[a-zA-Z0-9-._~]+$/).optional(),
-    resourceOauth2ReturnUrl: z.string().min(1).max(2048).regex(/^\w+:(\/?\/?)[^\s]+$/).optional(),
+    sessionUri: z.string().min(1).max(1024).regex(new RegExp("^urn:ietf:params:oauth:request_uri:[a-zA-Z0-9-._~]+$")).optional(),
+    resourceOauth2ReturnUrl: z.string().min(1).max(2048).regex(new RegExp("^\\w+:(\\/?\\/?)[^\\s]+$")).optional(),
     forceAuthentication: z.boolean().optional(),
     customParameters: z.record(z.string(), z.string().min(1).max(2048)).optional(),
     customState: z.string().min(1).max(4096).optional(),
@@ -187,7 +187,7 @@ server.registerTool(
   {
     description: "<p>Obtains a workload access token for agentic workloads not acting on behalf of a user.</p>",
     inputSchema: z.object({
-    workloadName: z.string().min(3).max(255).regex(/^[A-Za-z0-9_.-]+$/),
+    workloadName: z.string().min(3).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")),
   }),
   },
   async (params) => {
@@ -215,8 +215,8 @@ server.registerTool(
   {
     description: "<p>Obtains a workload access token for agentic workloads acting on behalf of a user, using a JWT token.</p>",
     inputSchema: z.object({
-    workloadName: z.string().min(3).max(255).regex(/^[A-Za-z0-9_.-]+$/),
-    userToken: z.string().min(1).max(131072).regex(/^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+$/),
+    workloadName: z.string().min(3).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")),
+    userToken: z.string().min(1).max(131072).regex(new RegExp("^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+$")),
   }),
   },
   async (params) => {
@@ -245,7 +245,7 @@ server.registerTool(
   {
     description: "<p>Obtains a workload access token for agentic workloads acting on behalf of a user, using the user's ID.</p>",
     inputSchema: z.object({
-    workloadName: z.string().min(3).max(255).regex(/^[A-Za-z0-9_.-]+$/),
+    workloadName: z.string().min(3).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")),
     userId: z.string().min(1).max(128),
   }),
   },
@@ -276,7 +276,7 @@ server.registerTool(
     description: "<p>Executes code within an active code interpreter session in Amazon Bedrock. This operation processes the provided code, runs it in a secure environment, and returns the execution results including output, errors, and generated visualizations.</p> <p>To execute code, you must specify the code interpreter identifier, session ID, and the code to run in the arguments parameter. The operation returns a stream containing the execution results, which can include text output, error messages, and data visualizations.</p> <p>This operation is subject to request rate limiting based on your account's service quotas.</p> <p>The following operations are related to <code>InvokeCodeInterpreter</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_StartCodeInterpreterSession.html\">StartCodeInterpreterSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_GetCodeInterpreterSession.html\">GetCodeInterpreterSession</a> </p> </li> </ul>",
     inputSchema: z.object({
     codeInterpreterIdentifier: z.string(),
-    sessionId: z.string().regex(/^[0-9a-zA-Z]{1,40}$/).optional(),
+    sessionId: z.string().regex(new RegExp("^[0-9a-zA-Z]{1,40}$")).optional(),
     traceId: z.string().optional(),
     traceParent: z.string().optional(),
     name: z.enum(["executeCode", "executeCommand", "readFiles", "listFiles", "removeFiles", "writeFiles", "startCommandExecution", "getTask", "stopTask"]),
