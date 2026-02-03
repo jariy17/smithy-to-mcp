@@ -2,7 +2,7 @@
 /**
  * MCP Server generated from Smithy model
  * Service: WeatherService
- * Generated at: 2026-02-03T02:22:57.291Z
+ * Generated at: 2026-02-03T02:38:43.184Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -11,7 +11,7 @@ import * as z from "zod/v4";
 
 // Configuration
 const CONFIG = {
-  baseUrl: process.env.API_BASE_URL || "https://api.weather.example.com",
+  baseUrl: process.env.API_BASE_URL || "http://localhost:8080",
   apiKey: process.env.API_KEY,
   timeout: parseInt(process.env.API_TIMEOUT || "30000"),
 };
@@ -83,8 +83,8 @@ server.registerTool(
   {
     description: "Get current weather for a location",
     inputSchema: z.object({
-    city: z.string(),
-    units: z.enum(["celsius", "fahrenheit"]).optional(),
+    city: z.string().describe("The city name"),
+    units: z.enum(["celsius", "fahrenheit"]).optional().describe("Temperature units (celsius or fahrenheit)"),
   }),
   },
   async (params) => {
@@ -116,7 +116,7 @@ server.registerTool(
     description: "Get weather forecast for a location",
     inputSchema: z.object({
     city: z.string(),
-    days: z.number().int().optional(),
+    days: z.number().int().optional().describe("Number of days to forecast (1-14)"),
   }),
   },
   async (params) => {

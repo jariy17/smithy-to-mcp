@@ -11,6 +11,7 @@ export interface SmithyModel {
 
 export type SmithyShape =
   | ServiceShape
+  | ResourceShape
   | OperationShape
   | StructureShape
   | ListShape
@@ -32,6 +33,19 @@ export interface ServiceShape extends BaseShape {
   resources?: ShapeReference[];
   errors?: ShapeReference[];
   rename?: Record<string, string>;
+}
+
+export interface ResourceShape extends BaseShape {
+  type: "resource";
+  identifiers?: Record<string, ShapeReference>;
+  create?: ShapeReference;
+  read?: ShapeReference;
+  update?: ShapeReference;
+  delete?: ShapeReference;
+  list?: ShapeReference;
+  operations?: ShapeReference[];
+  collectionOperations?: ShapeReference[];
+  resources?: ShapeReference[];
 }
 
 export interface OperationShape extends BaseShape {

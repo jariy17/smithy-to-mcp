@@ -3,6 +3,7 @@ import {
   SmithyModel,
   SmithyShape,
   ServiceShape,
+  ResourceShape,
   OperationShape,
   StructureShape,
   ListShape,
@@ -54,6 +55,8 @@ export interface ParsedService {
   operations: ParsedOperation[];
   protocol?: string;
   baseUrl?: string;
+  endpointPrefix?: string;
+  sigv4ServiceName?: string;
 }
 
 export type JsonSchema = {
@@ -106,6 +109,7 @@ export class SmithyParser {
   private parseService(shapeId: string, shape: ServiceShape): ParsedService {
     const operations: ParsedOperation[] = [];
 
+    // Parse direct operations on the service
     if (shape.operations) {
       for (const opRef of shape.operations) {
         const opShape = this.model.shapes[opRef.target];
@@ -117,9 +121,18 @@ export class SmithyParser {
       }
     }
 
+    // Parse operations from resources (CRUD operations)
+    if (shape.resources) {
+      for (const resourceRef of shape.resources) {
+        this.extractResourceOperations(resourceRef.target, operations);
+      }
+    }
+
     // Detect protocol from traits
     let protocol: string | undefined;
     let baseUrl: string | undefined;
+    let endpointPrefix: string | undefined;
+    let sigv4ServiceName: string | undefined;
 
     if (shape.traits) {
       if (shape.traits["aws.protocols#restJson1"]) {
@@ -139,6 +152,18 @@ export class SmithyParser {
       if (endpointTrait?.hostPrefix) {
         baseUrl = endpointTrait.hostPrefix;
       }
+
+      // Extract AWS service endpoint prefix
+      const awsServiceTrait = shape.traits["aws.api#service"] as { endpointPrefix?: string } | undefined;
+      if (awsServiceTrait?.endpointPrefix) {
+        endpointPrefix = awsServiceTrait.endpointPrefix;
+      }
+
+      // Extract SigV4 service name
+      const sigv4Trait = shape.traits["aws.auth#sigv4"] as { name?: string } | undefined;
+      if (sigv4Trait?.name) {
+        sigv4ServiceName = sigv4Trait.name;
+      }
     }
 
     return {
@@ -149,7 +174,72 @@ export class SmithyParser {
       operations,
       protocol,
       baseUrl,
+      endpointPrefix,
+      sigv4ServiceName,
     };
+  }
+
+  private extractResourceOperations(
+    resourceShapeId: string,
+    operations: ParsedOperation[]
+  ): void {
+    const resourceShape = this.model.shapes[resourceShapeId];
+    if (!resourceShape || resourceShape.type !== "resource") {
+      return;
+    }
+
+    const resource = resourceShape as ResourceShape;
+
+    // Extract CRUD lifecycle operations
+    const lifecycleOps = [
+      resource.create,
+      resource.read,
+      resource.update,
+      resource.delete,
+      resource.list,
+    ];
+
+    for (const opRef of lifecycleOps) {
+      if (opRef) {
+        const opShape = this.model.shapes[opRef.target];
+        if (opShape && opShape.type === "operation") {
+          operations.push(
+            this.parseOperation(opRef.target, opShape as OperationShape)
+          );
+        }
+      }
+    }
+
+    // Extract additional operations on the resource
+    if (resource.operations) {
+      for (const opRef of resource.operations) {
+        const opShape = this.model.shapes[opRef.target];
+        if (opShape && opShape.type === "operation") {
+          operations.push(
+            this.parseOperation(opRef.target, opShape as OperationShape)
+          );
+        }
+      }
+    }
+
+    // Extract collection operations
+    if (resource.collectionOperations) {
+      for (const opRef of resource.collectionOperations) {
+        const opShape = this.model.shapes[opRef.target];
+        if (opShape && opShape.type === "operation") {
+          operations.push(
+            this.parseOperation(opRef.target, opShape as OperationShape)
+          );
+        }
+      }
+    }
+
+    // Recursively extract from nested resources
+    if (resource.resources) {
+      for (const nestedResourceRef of resource.resources) {
+        this.extractResourceOperations(nestedResourceRef.target, operations);
+      }
+    }
   }
 
   private parseOperation(

@@ -25,6 +25,17 @@ export class McpGenerator {
     const serverName = this.options.serverName || service.name;
     const serverVersion = this.options.serverVersion || service.version || "1.0.0";
 
+    // Determine base URL: explicit option > endpoint prefix > localhost fallback
+    let baseUrlCode: string;
+    if (this.options.baseUrl) {
+      baseUrlCode = `process.env.API_BASE_URL || "${this.options.baseUrl}"`;
+    } else if (service.endpointPrefix) {
+      // AWS service - construct URL from endpoint prefix and region
+      baseUrlCode = `process.env.API_BASE_URL || \`https://${service.endpointPrefix}.\${process.env.AWS_REGION || "us-east-1"}.amazonaws.com\``;
+    } else {
+      baseUrlCode = `process.env.API_BASE_URL || "http://localhost:8080"`;
+    }
+
     return `#!/usr/bin/env node
 /**
  * MCP Server generated from Smithy model
@@ -38,7 +49,7 @@ import * as z from "zod/v4";
 
 // Configuration
 const CONFIG = {
-  baseUrl: process.env.API_BASE_URL || "${this.options.baseUrl || "http://localhost:8080"}",
+  baseUrl: ${baseUrlCode},
   apiKey: process.env.API_KEY,
   timeout: parseInt(process.env.API_TIMEOUT || "30000"),
 };
@@ -55,7 +66,7 @@ async function callApi<T>(
   path: string,
   body?: unknown,
   pathParams?: Record<string, string>,
-  queryParams?: Record<string, string>
+  queryParams?: Record<string, string | undefined>
 ): Promise<T> {
   // Replace path parameters
   let resolvedPath = path;
@@ -132,7 +143,8 @@ main().catch((error) => {
 
   private generateTool(operation: ParsedOperation): string {
     const toolName = this.operationToToolName(operation.name);
-    const description = operation.documentation || `Execute ${operation.name} operation`;
+    const rawDescription = operation.documentation || `Execute ${operation.name} operation`;
+    const description = this.stripHtml(rawDescription);
 
     const zodSchema = this.generateZodSchema(operation);
     const apiCall = this.generateApiCall(operation);
@@ -177,22 +189,48 @@ server.registerTool(
     const schemaLines: string[] = ["z.object({"];
 
     for (const member of operation.input.members) {
-      const zodType = this.jsonSchemaToZod(member.jsonSchema);
-      const line = member.required
-        ? `    ${member.name}: ${zodType},`
-        : `    ${member.name}: ${zodType}.optional(),`;
-      schemaLines.push(line);
+      let zodType = this.jsonSchemaToZod(member.jsonSchema);
+
+      // Add .optional() for non-required fields
+      if (!member.required) {
+        zodType = `${zodType}.optional()`;
+      }
+
+      // Add description if available (always last)
+      if (member.documentation) {
+        const desc = this.escapeStringForJs(member.documentation);
+        zodType = `${zodType}.describe(${desc})`;
+      }
+
+      schemaLines.push(`    ${member.name}: ${zodType},`);
     }
 
     schemaLines.push("  })");
     return schemaLines.join("\n");
   }
 
-  private jsonSchemaToZod(schema: JsonSchema): string {
+  private stripHtml(str: string): string {
+    return str
+      .replace(/<[^>]*>/g, "") // Remove HTML tags
+      .replace(/\s+/g, " ")    // Normalize whitespace
+      .trim();
+  }
+
+  private escapeStringForJs(str: string): string {
+    return JSON.stringify(this.stripHtml(str));
+  }
+
+  private jsonSchemaToZod(schema: JsonSchema, depth: number = 0): string {
+    // Prevent infinite recursion - limit nesting depth
+    const MAX_DEPTH = 10;
+    if (depth > MAX_DEPTH) {
+      return "z.unknown()";
+    }
+
     if (!schema.type) {
       if (schema.oneOf) {
         // Union type
-        const options = schema.oneOf.map((s) => this.jsonSchemaToZod(s));
+        const options = schema.oneOf.map((s) => this.jsonSchemaToZod(s, depth + 1));
         return `z.union([${options.join(", ")}])`;
       }
       if (schema.enum) {
@@ -211,9 +249,9 @@ server.registerTool(
       case "boolean":
         return "z.boolean()";
       case "array":
-        return `z.array(${this.jsonSchemaToZod(schema.items || {})})`;
+        return `z.array(${this.jsonSchemaToZod(schema.items || {}, depth + 1)})`;
       case "object":
-        return this.objectToZod(schema);
+        return this.objectToZod(schema, depth);
       default:
         return "z.unknown()";
     }
@@ -234,7 +272,8 @@ server.registerTool(
       constraints.push(`.max(${schema.maxLength})`);
     }
     if (schema.pattern) {
-      constraints.push(`.regex(/${schema.pattern}/)`);
+      // Use new RegExp() to avoid template literal issues with patterns containing ${ or }
+      constraints.push(`.regex(new RegExp(${JSON.stringify(schema.pattern)}))`);
     }
     if (schema.format === "date-time") {
       constraints.push(`.datetime()`);
@@ -275,9 +314,9 @@ server.registerTool(
     return base + constraints.join("");
   }
 
-  private objectToZod(schema: JsonSchema): string {
+  private objectToZod(schema: JsonSchema, depth: number): string {
     if (schema.additionalProperties) {
-      return `z.record(z.string(), ${this.jsonSchemaToZod(schema.additionalProperties)})`;
+      return `z.record(z.string(), ${this.jsonSchemaToZod(schema.additionalProperties, depth + 1)})`;
     }
 
     if (!schema.properties) {
@@ -287,7 +326,7 @@ server.registerTool(
     const props: string[] = [];
     for (const [key, propSchema] of Object.entries(schema.properties)) {
       const isRequired = schema.required?.includes(key);
-      const zodType = this.jsonSchemaToZod(propSchema);
+      const zodType = this.jsonSchemaToZod(propSchema, depth + 1);
       props.push(`${key}: ${isRequired ? zodType : `${zodType}.optional()`}`);
     }
 
