@@ -1,9 +1,78 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import { readFile, writeFile, mkdir } from "fs/promises";
+import { readFile, writeFile, mkdir, access } from "fs/promises";
 import { dirname, basename, join } from "path";
+import { homedir } from "os";
 import { SmithyParser } from "./smithy-parser.js";
 import { generateMcpServer, GeneratorOptions } from "./mcp-generator.js";
+import { serveSmithy } from "./dynamic-server.js";
+
+// AWS model source - api-models-aws repo
+const AWS_MODELS_API = "https://api.github.com/repos/aws/api-models-aws/contents/models";
+
+async function resolveAwsModel(serviceName: string): Promise<string> {
+  const cacheDir = join(homedir(), ".smithy-to-mcp", "cache");
+  const cachePath = join(cacheDir, `${serviceName}.json`);
+
+  // Check cache first
+  try {
+    await access(cachePath);
+    console.error(`Using cached model: ${cachePath}`);
+    return cachePath;
+  } catch {
+    // Not cached, need to download
+  }
+
+  console.error(`Resolving AWS model: ${serviceName}`);
+
+  // Step 1: List versions in service directory
+  const serviceUrl = `${AWS_MODELS_API}/${serviceName}/service`;
+  const serviceResp = await fetch(serviceUrl);
+  if (!serviceResp.ok) {
+    throw new Error(`Could not find AWS model for service: ${serviceName}`);
+  }
+  const versions = await serviceResp.json() as Array<{ name: string }>;
+  if (!versions.length) {
+    throw new Error(`No versions found for service: ${serviceName}`);
+  }
+
+  // Get latest version (last in alphabetical order for date-based versions)
+  const latestVersion = versions.sort((a, b) => b.name.localeCompare(a.name))[0].name;
+
+  // Step 2: Get model file from version directory
+  const versionUrl = `${AWS_MODELS_API}/${serviceName}/service/${latestVersion}`;
+  const versionResp = await fetch(versionUrl);
+  if (!versionResp.ok) {
+    throw new Error(`Could not list version directory for: ${serviceName}/${latestVersion}`);
+  }
+  const files = await versionResp.json() as Array<{ name: string; download_url: string }>;
+  const modelFile = files.find(f => f.name.endsWith('.json'));
+  if (!modelFile) {
+    throw new Error(`No model file found for: ${serviceName}/${latestVersion}`);
+  }
+
+  // Step 3: Download the model
+  console.error(`Downloading: ${modelFile.download_url}`);
+  const modelResp = await fetch(modelFile.download_url);
+  if (!modelResp.ok) {
+    throw new Error(`Failed to download model: ${modelFile.download_url}`);
+  }
+  const content = await modelResp.text();
+
+  // Cache it
+  await mkdir(cacheDir, { recursive: true });
+  await writeFile(cachePath, content, "utf-8");
+  console.error(`Cached: ${cachePath}`);
+  return cachePath;
+}
+
+async function resolveInput(input: string): Promise<string> {
+  if (input.startsWith("aws:")) {
+    const serviceName = input.slice(4);
+    return resolveAwsModel(serviceName);
+  }
+  return input;
+}
 
 const program = new Command();
 
@@ -297,6 +366,32 @@ program
     console.log("\nNext steps:");
     console.log(`  1. Inspect the model:    npx smithy-to-mcp inspect ${outputPath}`);
     console.log(`  2. Generate MCP server:  npx smithy-to-mcp generate ${outputPath} -o weather-mcp-server.ts`);
+    console.log(`  3. Run directly:         npx smithy-to-mcp serve ${outputPath}`);
+  });
+
+program
+  .command("serve")
+  .description("Run a dynamic MCP server directly from a Smithy JSON AST file or AWS service (aws:service-name)")
+  .argument("<input>", "Path to Smithy JSON AST file, or aws:<service-name> to auto-download")
+  .option("-u, --base-url <url>", "Base URL for API calls (default: from model or API_BASE_URL env)")
+  .option("-k, --api-key <key>", "API key for authentication (default: API_KEY env)")
+  .option("-t, --timeout <ms>", "Request timeout in milliseconds", "30000")
+  .option("-r, --region <region>", "AWS region for SigV4 signing (default: AWS_REGION env or us-east-1)")
+  .option("--no-cache", "Skip cache and re-download AWS models")
+  .action(async (input: string, options) => {
+    try {
+      const resolvedPath = await resolveInput(input);
+      console.error(`Starting dynamic MCP server from ${resolvedPath}...`);
+      await serveSmithy(resolvedPath, {
+        baseUrl: options.baseUrl,
+        apiKey: options.apiKey,
+        timeout: parseInt(options.timeout),
+        region: options.region,
+      });
+    } catch (error) {
+      console.error("Error:", error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
   });
 
 program.parse();
