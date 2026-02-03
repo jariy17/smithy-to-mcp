@@ -2,19 +2,32 @@
 /**
  * MCP Server generated from Smithy model
  * Service: AmazonBedrockAgentCore
- * Generated at: 2026-02-03T02:38:43.102Z
+ * Generated at: 2026-02-03T02:41:45.709Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import * as z from "zod/v4";
+import { SignatureV4 } from "@smithy/signature-v4";
+import { Sha256 } from "@aws-crypto/sha256-js";
+import { defaultProvider } from "@aws-sdk/credential-provider-node";
+import { HttpRequest } from "@smithy/protocol-http";
 
 // Configuration
 const CONFIG = {
   baseUrl: process.env.API_BASE_URL || `https://bedrock-agentcore.${process.env.AWS_REGION || "us-east-1"}.amazonaws.com`,
-  apiKey: process.env.API_KEY,
+  region: process.env.AWS_REGION || "us-east-1",
+  service: "bedrock-agentcore",
   timeout: parseInt(process.env.API_TIMEOUT || "30000"),
 };
+
+// AWS SigV4 signer
+const signer = new SignatureV4({
+  credentials: defaultProvider(),
+  region: CONFIG.region,
+  service: CONFIG.service,
+  sha256: Sha256,
+});
 
 // Create MCP server
 const server = new McpServer({
@@ -22,7 +35,7 @@ const server = new McpServer({
   version: "2024-02-28",
 });
 
-// HTTP client helper
+// HTTP client helper with AWS SigV4 signing
 async function callApi<T>(
   method: string,
   path: string,
@@ -48,19 +61,31 @@ async function callApi<T>(
     }
   }
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-  };
+  const bodyString = body ? JSON.stringify(body) : undefined;
 
-  if (CONFIG.apiKey) {
-    headers["Authorization"] = `Bearer ${CONFIG.apiKey}`;
-  }
+  // Create HTTP request for signing
+  const request = new HttpRequest({
+    method,
+    protocol: url.protocol,
+    hostname: url.hostname,
+    port: url.port ? parseInt(url.port) : undefined,
+    path: url.pathname + url.search,
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "host": url.hostname,
+    },
+    body: bodyString,
+  });
 
+  // Sign the request
+  const signedRequest = await signer.sign(request);
+
+  // Execute the request
   const response = await fetch(url.toString(), {
     method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
+    headers: signedRequest.headers as Record<string, string>,
+    body: bodyString,
     signal: AbortSignal.timeout(CONFIG.timeout),
   });
 

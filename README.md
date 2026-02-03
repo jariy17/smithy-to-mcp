@@ -9,6 +9,7 @@ This tool parses Smithy JSON AST files and generates TypeScript MCP servers with
 - Zod schemas with validation and descriptions
 - HTTP client with path/query/body parameter handling
 - Auto-detected AWS endpoints from Smithy traits
+- AWS SigV4 authentication (auto-detected from Smithy model)
 
 ## Installation
 
@@ -70,8 +71,20 @@ The generated server supports:
 |----------|-------------|
 | `API_BASE_URL` | Override the base URL |
 | `AWS_REGION` | AWS region for AWS services (default: us-east-1) |
-| `API_KEY` | API key for Authorization header |
+| `API_KEY` | API key for Authorization header (non-AWS) |
 | `API_TIMEOUT` | Request timeout in ms (default: 30000) |
+
+### AWS SigV4 Authentication
+
+For AWS services, the generator automatically detects SigV4 requirements from the Smithy model and generates code that:
+- Uses `@smithy/signature-v4` for request signing
+- Uses `@aws-sdk/credential-provider-node` for AWS credentials
+- Reads credentials from environment, ~/.aws/credentials, IAM roles, etc.
+
+Required dependencies for AWS services:
+```bash
+npm install @smithy/signature-v4 @smithy/protocol-http @aws-crypto/sha256-js @aws-sdk/credential-provider-node
+```
 
 ## Generated output
 

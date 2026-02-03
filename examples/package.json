@@ -1,0 +1,13 @@
+{
+  "name": "smithy-to-mcp-examples",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.11.0",
+    "zod": "^3.25.0",
+    "@smithy/signature-v4": "^5.1.2",
+    "@smithy/protocol-http": "^5.1.2",
+    "@aws-crypto/sha256-js": "^5.2.0",
+    "@aws-sdk/credential-provider-node": "^3.840.0"
+  }
+}

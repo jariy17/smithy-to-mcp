@@ -24,6 +24,7 @@ export class McpGenerator {
 
     const serverName = this.options.serverName || service.name;
     const serverVersion = this.options.serverVersion || service.version || "1.0.0";
+    const usesSigV4 = !!service.sigv4ServiceName;
 
     // Determine base URL: explicit option > endpoint prefix > localhost fallback
     let baseUrlCode: string;
@@ -36,6 +37,12 @@ export class McpGenerator {
       baseUrlCode = `process.env.API_BASE_URL || "http://localhost:8080"`;
     }
 
+    const imports = usesSigV4 ? this.generateSigV4Imports() : this.generateStandardImports();
+    const config = usesSigV4
+      ? this.generateSigV4Config(baseUrlCode, service.sigv4ServiceName!)
+      : this.generateStandardConfig(baseUrlCode);
+    const httpClient = usesSigV4 ? this.generateSigV4HttpClient() : this.generateStandardHttpClient();
+
     return `#!/usr/bin/env node
 /**
  * MCP Server generated from Smithy model
@@ -43,16 +50,9 @@ export class McpGenerator {
  * Generated at: ${new Date().toISOString()}
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import * as z from "zod/v4";
+${imports}
 
-// Configuration
-const CONFIG = {
-  baseUrl: ${baseUrlCode},
-  apiKey: process.env.API_KEY,
-  timeout: parseInt(process.env.API_TIMEOUT || "30000"),
-};
+${config}
 
 // Create MCP server
 const server = new McpServer({
@@ -60,7 +60,69 @@ const server = new McpServer({
   version: "${serverVersion}",
 });
 
-// HTTP client helper
+${httpClient}
+
+${this.generateTools(service)}
+
+// Start server
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("${serverName} MCP server running on stdio");
+}
+
+main().catch((error) => {
+  console.error("Server error:", error);
+  process.exit(1);
+});
+`;
+  }
+
+  private generateStandardImports(): string {
+    return `import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import * as z from "zod/v4";`;
+  }
+
+  private generateSigV4Imports(): string {
+    return `import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import * as z from "zod/v4";
+import { SignatureV4 } from "@smithy/signature-v4";
+import { Sha256 } from "@aws-crypto/sha256-js";
+import { defaultProvider } from "@aws-sdk/credential-provider-node";
+import { HttpRequest } from "@smithy/protocol-http";`;
+  }
+
+  private generateStandardConfig(baseUrlCode: string): string {
+    return `// Configuration
+const CONFIG = {
+  baseUrl: ${baseUrlCode},
+  apiKey: process.env.API_KEY,
+  timeout: parseInt(process.env.API_TIMEOUT || "30000"),
+};`;
+  }
+
+  private generateSigV4Config(baseUrlCode: string, sigv4ServiceName: string): string {
+    return `// Configuration
+const CONFIG = {
+  baseUrl: ${baseUrlCode},
+  region: process.env.AWS_REGION || "us-east-1",
+  service: "${sigv4ServiceName}",
+  timeout: parseInt(process.env.API_TIMEOUT || "30000"),
+};
+
+// AWS SigV4 signer
+const signer = new SignatureV4({
+  credentials: defaultProvider(),
+  region: CONFIG.region,
+  service: CONFIG.service,
+  sha256: Sha256,
+});`;
+  }
+
+  private generateStandardHttpClient(): string {
+    return `// HTTP client helper
 async function callApi<T>(
   method: string,
   path: string,
@@ -113,22 +175,76 @@ async function callApi<T>(
   }
 
   return response.text() as unknown as T;
-}
+}`;
+  }
 
-${this.generateTools(service)}
+  private generateSigV4HttpClient(): string {
+    return `// HTTP client helper with AWS SigV4 signing
+async function callApi<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+  pathParams?: Record<string, string>,
+  queryParams?: Record<string, string | undefined>
+): Promise<T> {
+  // Replace path parameters
+  let resolvedPath = path;
+  if (pathParams) {
+    for (const [key, value] of Object.entries(pathParams)) {
+      resolvedPath = resolvedPath.replace(\`{\${key}}\`, encodeURIComponent(value));
+    }
+  }
 
-// Start server
-async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("${serverName} MCP server running on stdio");
-}
+  // Build URL with query parameters
+  const url = new URL(resolvedPath, CONFIG.baseUrl);
+  if (queryParams) {
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (value !== undefined && value !== null) {
+        url.searchParams.set(key, value);
+      }
+    }
+  }
 
-main().catch((error) => {
-  console.error("Server error:", error);
-  process.exit(1);
-});
-`;
+  const bodyString = body ? JSON.stringify(body) : undefined;
+
+  // Create HTTP request for signing
+  const request = new HttpRequest({
+    method,
+    protocol: url.protocol,
+    hostname: url.hostname,
+    port: url.port ? parseInt(url.port) : undefined,
+    path: url.pathname + url.search,
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "host": url.hostname,
+    },
+    body: bodyString,
+  });
+
+  // Sign the request
+  const signedRequest = await signer.sign(request);
+
+  // Execute the request
+  const response = await fetch(url.toString(), {
+    method,
+    headers: signedRequest.headers as Record<string, string>,
+    body: bodyString,
+    signal: AbortSignal.timeout(CONFIG.timeout),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(\`API error \${response.status}: \${errorBody}\`);
+  }
+
+  const contentType = response.headers.get("content-type");
+  if (contentType?.includes("application/json")) {
+    return response.json() as Promise<T>;
+  }
+
+  return response.text() as unknown as T;
+}`;
   }
 
   private generateTools(service: ParsedService): string {
