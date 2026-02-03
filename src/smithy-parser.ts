@@ -53,6 +53,17 @@ export interface ParsedOperation {
   errors?: string[];
   pagination?: PaginationConfig;
   waiters?: WaiterConfig[];
+  // Additional traits
+  deprecated?: { message?: string; since?: string }; // @deprecated
+  examples?: ExampleValue[]; // @examples
+  externalDocumentation?: Record<string, string>; // @externalDocumentation
+  httpChecksum?: HttpChecksumConfig; // @httpChecksum
+  retryable?: RetryableConfig; // Error retryability hints
+  tags?: string[]; // @tags
+  unstable?: boolean; // @unstable
+  internal?: boolean; // @internal
+  idempotent?: boolean; // @idempotent
+  readonly?: boolean; // @readonly
 }
 
 export interface ParsedStructure {
@@ -64,8 +75,32 @@ export interface ParsedStructure {
 }
 
 export interface HttpBinding {
-  type: "label" | "query" | "header" | "prefixHeaders" | "payload" | "body";
+  type: "label" | "query" | "header" | "prefixHeaders" | "payload" | "body" | "queryParams";
   name?: string; // For query/header, the wire name
+}
+
+export interface ExampleValue {
+  title?: string;
+  documentation?: string;
+  input?: Record<string, unknown>;
+  output?: Record<string, unknown>;
+  error?: { shapeId: string; content?: Record<string, unknown> };
+}
+
+export interface ExternalDoc {
+  url: string;
+  description?: string;
+}
+
+export interface HttpChecksumConfig {
+  requestAlgorithmMember?: string;
+  requestChecksumRequired?: boolean;
+  requestValidationModeMember?: string;
+  responseAlgorithms?: string[];
+}
+
+export interface RetryableConfig {
+  throttling?: boolean;
 }
 
 export interface ParsedMember {
@@ -76,6 +111,16 @@ export interface ParsedMember {
   jsonSchema: JsonSchema;
   httpBinding?: HttpBinding;
   jsonName?: string; // Wire name if different from member name (@jsonName trait)
+  sensitive?: boolean; // @sensitive - contains sensitive data
+  deprecated?: { message?: string; since?: string }; // @deprecated
+  idempotencyToken?: boolean; // @idempotencyToken - auto-generate UUID
+  streaming?: boolean; // @streaming - streaming body
+  hostLabel?: boolean; // @hostLabel - used in endpoint hostname
+  mediaType?: string; // @mediaType - content type hint
+  tags?: string[]; // @tags - resource tags
+  unstable?: boolean; // @unstable - unstable API
+  internal?: boolean; // @internal - internal API
+  externalDocumentation?: Record<string, string>; // @externalDocumentation - external doc links
 }
 
 export interface ParsedService {
@@ -328,6 +373,59 @@ export class SmithyParser {
       op.waiters = waiters;
     }
 
+    // Parse additional operation-level traits
+    if (shape.traits) {
+      // @deprecated
+      const deprecated = this.getDeprecated(shape.traits);
+      if (deprecated) {
+        op.deprecated = deprecated;
+      }
+
+      // @examples
+      const examples = this.getExamples(shape.traits);
+      if (examples && examples.length > 0) {
+        op.examples = examples;
+      }
+
+      // @externalDocumentation
+      const externalDocs = this.getExternalDocumentation(shape.traits);
+      if (externalDocs) {
+        op.externalDocumentation = externalDocs;
+      }
+
+      // @httpChecksum
+      const httpChecksum = this.getHttpChecksum(shape.traits);
+      if (httpChecksum) {
+        op.httpChecksum = httpChecksum;
+      }
+
+      // @tags
+      const tags = this.getTags(shape.traits);
+      if (tags && tags.length > 0) {
+        op.tags = tags;
+      }
+
+      // @unstable
+      if (shape.traits["smithy.api#unstable"] !== undefined) {
+        op.unstable = true;
+      }
+
+      // @internal
+      if (shape.traits["smithy.api#internal"] !== undefined) {
+        op.internal = true;
+      }
+
+      // @idempotent
+      if (shape.traits["smithy.api#idempotent"] !== undefined) {
+        op.idempotent = true;
+      }
+
+      // @readonly
+      if (shape.traits["smithy.api#readonly"] !== undefined) {
+        op.readonly = true;
+      }
+    }
+
     return op;
   }
 
@@ -345,7 +443,7 @@ export class SmithyParser {
           required.push(memberName);
         }
 
-        members.push({
+        const parsedMember: ParsedMember = {
           name: memberName,
           target: member.target,
           documentation: this.getDocumentation(member.traits),
@@ -353,7 +451,72 @@ export class SmithyParser {
           jsonSchema: this.shapeToJsonSchema(member.target),
           httpBinding: this.getHttpBinding(member.traits),
           jsonName: this.getJsonName(member.traits),
-        });
+        };
+
+        // Check target type for @sensitive trait (it's often on the type, not the member)
+        const targetShape = this.model.shapes[member.target];
+        if (targetShape?.traits?.["smithy.api#sensitive"] !== undefined) {
+          parsedMember.sensitive = true;
+        }
+
+        // Extract additional member-level traits
+        if (member.traits) {
+          // @sensitive on member directly
+          if (member.traits["smithy.api#sensitive"] !== undefined) {
+            parsedMember.sensitive = true;
+          }
+
+          // @deprecated
+          const deprecated = this.getDeprecated(member.traits);
+          if (deprecated) {
+            parsedMember.deprecated = deprecated;
+          }
+
+          // @idempotencyToken
+          if (member.traits["smithy.api#idempotencyToken"] !== undefined) {
+            parsedMember.idempotencyToken = true;
+          }
+
+          // @streaming
+          if (member.traits["smithy.api#streaming"] !== undefined) {
+            parsedMember.streaming = true;
+          }
+
+          // @hostLabel
+          if (member.traits["smithy.api#hostLabel"] !== undefined) {
+            parsedMember.hostLabel = true;
+          }
+
+          // @mediaType
+          const mediaType = member.traits["smithy.api#mediaType"] as string | undefined;
+          if (mediaType) {
+            parsedMember.mediaType = mediaType;
+          }
+
+          // @tags
+          const tags = this.getTags(member.traits);
+          if (tags && tags.length > 0) {
+            parsedMember.tags = tags;
+          }
+
+          // @unstable
+          if (member.traits["smithy.api#unstable"] !== undefined) {
+            parsedMember.unstable = true;
+          }
+
+          // @internal
+          if (member.traits["smithy.api#internal"] !== undefined) {
+            parsedMember.internal = true;
+          }
+
+          // @externalDocumentation
+          const externalDocs = this.getExternalDocumentation(member.traits);
+          if (externalDocs) {
+            parsedMember.externalDocumentation = externalDocs;
+          }
+        }
+
+        members.push(parsedMember);
       }
     }
 
@@ -374,6 +537,9 @@ export class SmithyParser {
     }
     if (traits["smithy.api#httpQuery"] !== undefined) {
       return { type: "query", name: traits["smithy.api#httpQuery"] as string };
+    }
+    if (traits["smithy.api#httpQueryParams"] !== undefined) {
+      return { type: "queryParams" };
     }
     if (traits["smithy.api#httpHeader"] !== undefined) {
       return { type: "header", name: traits["smithy.api#httpHeader"] as string };
@@ -728,5 +894,83 @@ export class SmithyParser {
   private isRequired(traits?: Record<string, unknown>): boolean {
     if (!traits) return false;
     return traits["smithy.api#required"] !== undefined;
+  }
+
+  private getDeprecated(traits?: Record<string, unknown>): { message?: string; since?: string } | undefined {
+    if (!traits) return undefined;
+
+    const deprecatedTrait = traits["smithy.api#deprecated"];
+    if (deprecatedTrait === undefined) return undefined;
+
+    // Can be just {} or { message?: string, since?: string }
+    if (typeof deprecatedTrait === "object" && deprecatedTrait !== null) {
+      const obj = deprecatedTrait as { message?: string; since?: string };
+      return {
+        message: obj.message,
+        since: obj.since,
+      };
+    }
+
+    return {};
+  }
+
+  private getExamples(traits?: Record<string, unknown>): ExampleValue[] | undefined {
+    if (!traits) return undefined;
+
+    const examplesTrait = traits["smithy.api#examples"] as Array<{
+      title?: string;
+      documentation?: string;
+      input?: Record<string, unknown>;
+      output?: Record<string, unknown>;
+      error?: { shapeId: string; content?: Record<string, unknown> };
+    }> | undefined;
+
+    if (!examplesTrait || !Array.isArray(examplesTrait)) return undefined;
+
+    return examplesTrait.map((ex) => ({
+      title: ex.title,
+      documentation: ex.documentation,
+      input: ex.input,
+      output: ex.output,
+      error: ex.error,
+    }));
+  }
+
+  private getExternalDocumentation(traits?: Record<string, unknown>): Record<string, string> | undefined {
+    if (!traits) return undefined;
+
+    const externalDocTrait = traits["smithy.api#externalDocumentation"] as Record<string, string> | undefined;
+    if (!externalDocTrait || typeof externalDocTrait !== "object") return undefined;
+
+    return externalDocTrait;
+  }
+
+  private getHttpChecksum(traits?: Record<string, unknown>): HttpChecksumConfig | undefined {
+    if (!traits) return undefined;
+
+    const checksumTrait = traits["smithy.api#httpChecksum"] as {
+      requestAlgorithmMember?: string;
+      requestChecksumRequired?: boolean;
+      requestValidationModeMember?: string;
+      responseAlgorithms?: string[];
+    } | undefined;
+
+    if (!checksumTrait) return undefined;
+
+    return {
+      requestAlgorithmMember: checksumTrait.requestAlgorithmMember,
+      requestChecksumRequired: checksumTrait.requestChecksumRequired,
+      requestValidationModeMember: checksumTrait.requestValidationModeMember,
+      responseAlgorithms: checksumTrait.responseAlgorithms,
+    };
+  }
+
+  private getTags(traits?: Record<string, unknown>): string[] | undefined {
+    if (!traits) return undefined;
+
+    const tagsTrait = traits["smithy.api#tags"] as string[] | undefined;
+    if (!tagsTrait || !Array.isArray(tagsTrait)) return undefined;
+
+    return tagsTrait;
   }
 }

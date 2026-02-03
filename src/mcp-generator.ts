@@ -1,4 +1,4 @@
-import { ParsedService, ParsedOperation, JsonSchema, ParsedMember, WaiterConfig } from "./smithy-parser.js";
+import { ParsedService, ParsedOperation, JsonSchema, ParsedMember, WaiterConfig, ExampleValue } from "./smithy-parser.js";
 
 export interface GeneratorOptions {
   serverName?: string;
@@ -256,6 +256,11 @@ async function callApi<T>(
     const tools: string[] = [];
 
     for (const operation of service.operations) {
+      // Skip internal operations - don't expose them as tools
+      if (operation.internal) {
+        continue;
+      }
+
       tools.push(this.generateTool(operation));
 
       // Generate waiter tools for operations with waiters
@@ -273,6 +278,38 @@ async function callApi<T>(
     const toolName = this.operationToToolName(operation.name);
     const rawDescription = operation.documentation || `Execute ${operation.name} operation`;
     let description = this.stripHtml(rawDescription);
+
+    // Add deprecation warning
+    if (operation.deprecated) {
+      const deprecationParts: string[] = ["DEPRECATED"];
+      if (operation.deprecated.since) {
+        deprecationParts.push(`since ${operation.deprecated.since}`);
+      }
+      if (operation.deprecated.message) {
+        deprecationParts.push(operation.deprecated.message);
+      }
+      description = `[${deprecationParts.join(": ")}] ${description}`;
+    }
+
+    // Add stability markers
+    if (operation.unstable) {
+      description = `[UNSTABLE] ${description}`;
+    }
+    if (operation.internal) {
+      description = `[INTERNAL] ${description}`;
+    }
+
+    // Add operation characteristics
+    const characteristics: string[] = [];
+    if (operation.idempotent) {
+      characteristics.push("idempotent");
+    }
+    if (operation.readonly) {
+      characteristics.push("read-only");
+    }
+    if (characteristics.length > 0) {
+      description += ` [${characteristics.join(", ")}]`;
+    }
 
     // Add pagination info to description if applicable
     if (operation.pagination) {
@@ -294,8 +331,42 @@ async function callApi<T>(
       }
     }
 
+    // Add HTTP checksum requirement
+    if (operation.httpChecksum?.requestChecksumRequired) {
+      description += ` [Requires checksum]`;
+    }
+
+    // Add external documentation links
+    if (operation.externalDocumentation) {
+      const links = Object.entries(operation.externalDocumentation)
+        .map(([label, url]) => `${label}: ${url}`)
+        .join("; ");
+      description += ` [Docs: ${links}]`;
+    }
+
+    // Add examples to description
+    if (operation.examples && operation.examples.length > 0) {
+      const exampleSummaries = operation.examples.slice(0, 2).map((ex) => {
+        return ex.title || "Example";
+      });
+      description += ` [Examples: ${exampleSummaries.join(", ")}]`;
+    }
+
+    // Add tags
+    if (operation.tags && operation.tags.length > 0) {
+      description += ` [Tags: ${operation.tags.join(", ")}]`;
+    }
+
     const zodSchema = this.generateZodSchema(operation);
     const apiCall = this.generateApiCall(operation);
+
+    // Generate deprecation warning for operation
+    const operationDeprecationWarning = operation.deprecated
+      ? `console.warn("[DEPRECATED] Tool '${toolName}' is deprecated${operation.deprecated.since ? ` since ${operation.deprecated.since}` : ""}${operation.deprecated.message ? `: ${operation.deprecated.message}` : ""}");`
+      : "";
+
+    // Generate deprecation warnings for deprecated fields
+    const fieldDeprecationWarnings = this.generateFieldDeprecationWarnings(operation, toolName);
 
     return `// Tool: ${toolName}
 server.registerTool(
@@ -305,6 +376,8 @@ server.registerTool(
     inputSchema: ${zodSchema},
   },
   async (params) => {
+    ${operationDeprecationWarning}
+    ${fieldDeprecationWarnings}
     try {
       ${apiCall}
       return {
@@ -319,6 +392,20 @@ server.registerTool(
     }
   }
 );`;
+  }
+
+  private generateFieldDeprecationWarnings(operation: ParsedOperation, toolName: string): string {
+    if (!operation.input) return "";
+
+    const warnings: string[] = [];
+    for (const member of operation.input.members) {
+      if (member.deprecated) {
+        const msg = `[DEPRECATED] Field '${member.name}' in tool '${toolName}' is deprecated${member.deprecated.since ? ` since ${member.deprecated.since}` : ""}${member.deprecated.message ? `: ${member.deprecated.message}` : ""}`;
+        warnings.push(`if (params.${member.name} !== undefined) console.warn(${JSON.stringify(msg)});`);
+      }
+    }
+
+    return warnings.join("\n    ");
   }
 
   private generateWaiterTool(operation: ParsedOperation, waiter: WaiterConfig): string {
@@ -470,14 +557,49 @@ server.registerTool(
     for (const member of operation.input.members) {
       let zodType = this.jsonSchemaToZod(member.jsonSchema);
 
-      // Add .optional() for non-required fields
-      if (!member.required) {
+      // Add .optional() for non-required fields (idempotency tokens are auto-generated if not provided)
+      if (!member.required || member.idempotencyToken) {
         zodType = `${zodType}.optional()`;
       }
 
+      // Build description with trait markers
+      let description = member.documentation || "";
+      const markers: string[] = [];
+
+      if (member.deprecated) {
+        let deprecation = "DEPRECATED";
+        if (member.deprecated.since) deprecation += ` since ${member.deprecated.since}`;
+        if (member.deprecated.message) deprecation += `: ${member.deprecated.message}`;
+        markers.push(deprecation);
+      }
+      if (member.sensitive) {
+        markers.push("SENSITIVE");
+      }
+      if (member.idempotencyToken) {
+        markers.push("Auto-generated UUID if not provided");
+      }
+      if (member.streaming) {
+        markers.push("STREAMING");
+      }
+      if (member.unstable) {
+        markers.push("UNSTABLE");
+      }
+      if (member.internal) {
+        markers.push("INTERNAL");
+      }
+      if (member.mediaType) {
+        markers.push(`mediaType: ${member.mediaType}`);
+      }
+
+      // Prepend markers to description
+      if (markers.length > 0) {
+        const markerStr = `[${markers.join("] [")}]`;
+        description = description ? `${markerStr} ${description}` : markerStr;
+      }
+
       // Add description if available (always last)
-      if (member.documentation) {
-        const desc = this.escapeStringForJs(member.documentation);
+      if (description) {
+        const desc = this.escapeStringForJs(description);
         zodType = `${zodType}.describe(${desc})`;
       }
 
@@ -639,8 +761,10 @@ server.registerTool(
     // Classify members by their HTTP binding
     const pathParams: ParsedMember[] = [];
     const queryParams: ParsedMember[] = [];
+    const queryMapParams: ParsedMember[] = []; // @httpQueryParams - spread map to query
     const headerParams: ParsedMember[] = [];
     const bodyParams: ParsedMember[] = [];
+    const idempotencyTokenParams: ParsedMember[] = [];
     let payloadParam: ParsedMember | undefined;
 
     // Extract path parameters from URI for fallback detection
@@ -649,6 +773,11 @@ server.registerTool(
 
     if (operation.input) {
       for (const member of operation.input.members) {
+        // Track idempotency tokens for auto-generation
+        if (member.idempotencyToken) {
+          idempotencyTokenParams.push(member);
+        }
+
         if (member.httpBinding) {
           switch (member.httpBinding.type) {
             case "label":
@@ -656,6 +785,9 @@ server.registerTool(
               break;
             case "query":
               queryParams.push(member);
+              break;
+            case "queryParams":
+              queryMapParams.push(member);
               break;
             case "header":
             case "prefixHeaders":
@@ -680,43 +812,67 @@ server.registerTool(
     // Generate the API call
     const lines: string[] = [];
 
+    // Auto-generate UUIDs for idempotency tokens if not provided
+    if (idempotencyTokenParams.length > 0) {
+      for (const p of idempotencyTokenParams) {
+        lines.push(`const ${p.name}Value = params.${p.name} ?? crypto.randomUUID();`);
+      }
+    }
+
     // Build path params object
     if (pathParams.length > 0) {
       lines.push(`const pathParams = {`);
       for (const p of pathParams) {
-        lines.push(`        ${p.name}: String(params.${p.name}),`);
+        const valueExpr = p.idempotencyToken ? `${p.name}Value` : `params.${p.name}`;
+        lines.push(`        ${p.name}: String(${valueExpr}),`);
       }
       lines.push(`      };`);
     }
 
     // Build query params object
-    if (queryParams.length > 0) {
-      lines.push(`const queryParams = {`);
+    const hasQueryParams = queryParams.length > 0 || queryMapParams.length > 0;
+    if (hasQueryParams) {
+      lines.push(`const queryParams: Record<string, string | undefined> = {`);
       for (const p of queryParams) {
         const wireName = p.httpBinding?.name || p.name;
-        lines.push(`        "${wireName}": params.${p.name} !== undefined ? String(params.${p.name}) : undefined,`);
+        const valueExpr = p.idempotencyToken ? `${p.name}Value` : `params.${p.name}`;
+        lines.push(`        "${wireName}": ${valueExpr} !== undefined ? String(${valueExpr}) : undefined,`);
       }
       lines.push(`      };`);
+
+      // Spread @httpQueryParams maps into query params
+      for (const p of queryMapParams) {
+        lines.push(`      // Spread ${p.name} map to query params (@httpQueryParams)`);
+        lines.push(`      if (params.${p.name}) {`);
+        lines.push(`        for (const [key, value] of Object.entries(params.${p.name})) {`);
+        lines.push(`          if (value !== undefined && value !== null) {`);
+        lines.push(`            queryParams[key] = String(value);`);
+        lines.push(`          }`);
+        lines.push(`        }`);
+        lines.push(`      }`);
+      }
     }
 
     // Build body
     let bodyArg = "undefined";
     if (payloadParam) {
       // httpPayload - the entire value is the body
-      bodyArg = `params.${payloadParam.name}`;
+      const valueExpr = payloadParam.idempotencyToken ? `${payloadParam.name}Value` : `params.${payloadParam.name}`;
+      bodyArg = valueExpr;
     } else if (bodyParams.length > 0 && (httpMethod === "POST" || httpMethod === "PUT" || httpMethod === "PATCH")) {
       lines.push(`const body = {`);
       for (const p of bodyParams) {
         // Use jsonName for wire format if specified, otherwise use member name
         const wireName = p.jsonName || p.name;
-        lines.push(`        "${wireName}": params.${p.name},`);
+        const valueExpr = p.idempotencyToken ? `${p.name}Value` : `params.${p.name}`;
+        lines.push(`        "${wireName}": ${valueExpr},`);
       }
       lines.push(`      };`);
       bodyArg = "body";
     }
 
     const pathArg = pathParams.length > 0 ? "pathParams" : "undefined";
-    const queryArg = queryParams.length > 0 ? "queryParams" : "undefined";
+    const queryArg = hasQueryParams ? "queryParams" : "undefined";
 
     lines.push(
       `const result = await callApi("${httpMethod}", "${httpUri}", ${bodyArg}, ${pathArg}, ${queryArg});`
