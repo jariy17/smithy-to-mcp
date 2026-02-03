@@ -20,22 +20,45 @@ npm run build
 
 ## Usage
 
-### Generate an MCP server
+### Run directly (dynamic server)
+
+The fastest way to run an MCP server from a Smithy model - no code generation needed:
 
 ```bash
-node dist/cli.js generate <smithy-model.json> -o <output.ts>
+# From a local file
+npx smithy-to-mcp serve ./my-model.json
+
+# Auto-download AWS service models
+npx smithy-to-mcp serve aws:bedrock-agent-runtime
+npx smithy-to-mcp serve aws:s3
 ```
 
 Options:
-- `-o, --output <file>` - Output file path (default: stdout)
-- `--base-url <url>` - Override base URL (auto-detected for AWS services)
-- `--name <name>` - Override server name
-- `--version <version>` - Override server version
+- `-u, --base-url <url>` - Base URL for API calls (default: from model or `API_BASE_URL` env)
+- `-k, --api-key <key>` - API key for authentication (default: `API_KEY` env)
+- `-t, --timeout <ms>` - Request timeout in milliseconds (default: 30000)
+- `-r, --region <region>` - AWS region for SigV4 signing (default: `AWS_REGION` env or us-east-1)
+- `--no-cache` - Skip cache and re-download AWS models
+
+### Generate an MCP server
+
+Generate a standalone TypeScript MCP server:
+
+```bash
+npx smithy-to-mcp generate <smithy-model.json> -o <output.ts>
+```
+
+Options:
+- `-o, --output <file>` - Output file path (default: mcp-server.ts)
+- `-u, --base-url <url>` - Override base URL (auto-detected for AWS services)
+- `-n, --name <name>` - Override server name
+- `-v, --version <version>` - Override server version
+- `--stdout` - Output to stdout instead of file
 
 ### Inspect a Smithy model
 
 ```bash
-node dist/cli.js inspect <smithy-model.json>
+npx smithy-to-mcp inspect <smithy-model.json>
 ```
 
 Shows service info, operations, and input/output shapes.
@@ -43,23 +66,65 @@ Shows service info, operations, and input/output shapes.
 ### Create an example Smithy model
 
 ```bash
-node dist/cli.js init
+npx smithy-to-mcp init
 ```
 
-Creates `example-service.json` as a starting point.
+Creates `weather-service.json` as a starting point.
 
 ## Examples
 
-### Generate from AWS Smithy model
+### Quick Start: AWS Bedrock AgentCore
+
+1. **Configure AWS credentials** (if not already set up)
+   ```bash
+   aws configure
+   # Or set environment variables:
+   export AWS_ACCESS_KEY_ID=your-key
+   export AWS_SECRET_ACCESS_KEY=your-secret
+   export AWS_REGION=us-east-1
+   ```
+
+2. **Run the MCP server** (auto-downloads and caches the model)
+   ```bash
+   npx smithy-to-mcp serve aws:bedrock-agent-runtime
+   ```
+
+3. **Add to Claude Desktop** (optional)
+
+   Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+   ```json
+   {
+     "mcpServers": {
+       "bedrock-agentcore": {
+         "command": "npx",
+         "args": ["smithy-to-mcp", "serve", "aws:bedrock-agent-runtime"]
+       }
+     }
+   }
+   ```
+
+### Other AWS Services
+
+Use `aws:<service-name>` to auto-download any AWS service model:
 
 ```bash
-# Download a Smithy model from AWS
-curl -o bedrock.json https://raw.githubusercontent.com/aws/api-models-aws/main/models/bedrock-agentcore.json
+npx smithy-to-mcp serve aws:s3
+npx smithy-to-mcp serve aws:dynamodb
+npx smithy-to-mcp serve aws:lambda
+npx smithy-to-mcp serve aws:ec2
+```
 
-# Generate MCP server
-node dist/cli.js generate bedrock.json -o bedrock-mcp-server.ts
+Models are downloaded from [aws/api-models-aws](https://github.com/aws/api-models-aws) and cached in `~/.smithy-to-mcp/cache/`.
 
-# Run the server
+### Generate a standalone MCP server
+
+If you prefer generated code over dynamic serving:
+
+```bash
+# Generate TypeScript MCP server
+npx smithy-to-mcp generate bedrock-agentcore.json -o bedrock-mcp-server.ts
+
+# Run the generated server
 npx tsx bedrock-mcp-server.ts
 ```
 
@@ -76,15 +141,12 @@ The generated server supports:
 
 ### AWS SigV4 Authentication
 
-For AWS services, the generator automatically detects SigV4 requirements from the Smithy model and generates code that:
+For AWS services, the tool automatically detects SigV4 requirements from the Smithy model and:
 - Uses `@smithy/signature-v4` for request signing
 - Uses `@aws-sdk/credential-provider-node` for AWS credentials
 - Reads credentials from environment, ~/.aws/credentials, IAM roles, etc.
 
-Required dependencies for AWS services:
-```bash
-npm install @smithy/signature-v4 @smithy/protocol-http @aws-crypto/sha256-js @aws-sdk/credential-provider-node
-```
+All AWS dependencies are included - no extra installation needed.
 
 ## Generated output
 
