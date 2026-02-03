@@ -2,7 +2,7 @@
 /**
  * MCP Server generated from Smithy model
  * Service: AmazonBedrockAgentCoreControl
- * Generated at: 2026-02-03T03:11:16.210Z
+ * Generated at: 2026-02-03T03:32:29.598Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -111,12 +111,14 @@ async function callApi<T>(
 server.registerTool(
   "delete-resource-policy",
   {
-    description: "Deletes the resource-based policy for a specified resource. This feature is currently available only for AgentCore Runtime and Gateway.",
+    description: "Deletes the resource-based policy for a specified resource. This feature is currently available only for AgentCore Runtime and Gateway. [idempotent]",
     inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011).describe("The Amazon Resource Name (ARN) of the resource for which to delete the resource policy."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               resourceArn: String(params.resourceArn),
@@ -139,12 +141,14 @@ server.registerTool(
 server.registerTool(
   "get-resource-policy",
   {
-    description: "Retrieves the resource-based policy for a specified resource. This feature is currently available only for AgentCore Runtime and Gateway.",
+    description: "Retrieves the resource-based policy for a specified resource. This feature is currently available only for AgentCore Runtime and Gateway. [read-only]",
     inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011).describe("The Amazon Resource Name (ARN) of the resource for which to retrieve the resource policy."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               resourceArn: String(params.resourceArn),
@@ -167,12 +171,14 @@ server.registerTool(
 server.registerTool(
   "get-token-vault",
   {
-    description: "Retrieves information about a token vault.",
+    description: "Retrieves information about a token vault. [read-only]",
     inputSchema: z.object({
     tokenVaultId: z.string().min(1).max(64).regex(new RegExp("^[a-zA-Z0-9\\-_]+$")).optional().describe("The unique identifier of the token vault to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "tokenVaultId": params.tokenVaultId,
@@ -195,12 +201,14 @@ server.registerTool(
 server.registerTool(
   "list-tags-for-resource",
   {
-    description: "Lists the tags associated with the specified resource. This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.",
+    description: "Lists the tags associated with the specified resource. This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway. [read-only]",
     inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011).regex(new RegExp("^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$")).describe("The Amazon Resource Name (ARN) of the resource for which you want to list tags."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               resourceArn: String(params.resourceArn),
@@ -223,13 +231,15 @@ server.registerTool(
 server.registerTool(
   "put-resource-policy",
   {
-    description: "Creates or updates a resource-based policy for a resource with the specified resourceArn. This feature is currently available only for AgentCore Runtime and Gateway.",
+    description: "Creates or updates a resource-based policy for a resource with the specified resourceArn. This feature is currently available only for AgentCore Runtime and Gateway. [idempotent]",
     inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011).describe("The Amazon Resource Name (ARN) of the resource for which to create or update the resource policy."),
     policy: z.string().min(1).max(20480).describe("The resource policy to create or update."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               resourceArn: String(params.resourceArn),
@@ -262,6 +272,8 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "tokenVaultId": params.tokenVaultId,
@@ -292,6 +304,8 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               resourceArn: String(params.resourceArn),
@@ -317,18 +331,20 @@ server.registerTool(
 server.registerTool(
   "untag-resource",
   {
-    description: "Removes the specified tags from the specified resource. This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.",
+    description: "Removes the specified tags from the specified resource. This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway. [idempotent]",
     inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011).regex(new RegExp("^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$")).describe("The Amazon Resource Name (ARN) of the resource that you want to untag."),
     tagKeys: z.array(z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"))).describe("The tag keys of the tags to remove from the resource."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               resourceArn: String(params.resourceArn),
             };
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "tagKeys": params.tagKeys !== undefined ? String(params.tagKeys) : undefined,
             };
       const result = await callApi("DELETE", "/tags/{resourceArn}", undefined, pathParams, queryParams);
@@ -349,18 +365,21 @@ server.registerTool(
 server.registerTool(
   "create-agent-runtime-endpoint",
   {
-    description: "Creates an AgentCore Runtime endpoint.",
+    description: "Creates an AgentCore Runtime endpoint. [idempotent]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime to create an endpoint for."),
-    name: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the AgentCore Runtime endpoint."),
+    name: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("[SENSITIVE] The name of the AgentCore Runtime endpoint."),
     agentRuntimeVersion: z.string().min(1).max(5).regex(new RegExp("^([1-9][0-9]{0,4})$")).optional().describe("The version of the AgentCore Runtime to use for the endpoint."),
     description: z.string().min(1).max(256).optional().describe("The description of the AgentCore Runtime endpoint."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure idempotency of the request."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure idempotency of the request."),
     tags: z.record(z.string(), z.string().min(0).max(256).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"))).optional().describe("A map of tag keys and values to assign to the agent runtime endpoint. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               agentRuntimeId: String(params.agentRuntimeId),
             };
@@ -368,7 +387,7 @@ server.registerTool(
               "name": params.name,
               "agentRuntimeVersion": params.agentRuntimeVersion,
               "description": params.description,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "tags": params.tags,
             };
       const result = await callApi("PUT", "/runtimes/{agentRuntimeId}/runtime-endpoints/", body, pathParams, undefined);
@@ -389,13 +408,15 @@ server.registerTool(
 server.registerTool(
   "get-agent-runtime-endpoint",
   {
-    description: "Gets information about an Amazon Secure AgentEndpoint.",
+    description: "Gets information about an Amazon Secure AgentEndpoint. [read-only]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime associated with the endpoint."),
-    endpointName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the AgentCore Runtime endpoint to retrieve."),
+    endpointName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("[SENSITIVE] The name of the AgentCore Runtime endpoint to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               agentRuntimeId: String(params.agentRuntimeId),
@@ -419,17 +440,20 @@ server.registerTool(
 server.registerTool(
   "update-agent-runtime-endpoint",
   {
-    description: "Updates an existing Amazon Bedrock AgentCore Runtime endpoint.",
+    description: "Updates an existing Amazon Bedrock AgentCore Runtime endpoint. [idempotent]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime associated with the endpoint."),
-    endpointName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the AgentCore Runtime endpoint to update."),
+    endpointName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("[SENSITIVE] The name of the AgentCore Runtime endpoint to update."),
     agentRuntimeVersion: z.string().min(1).max(5).regex(new RegExp("^([1-9][0-9]{0,4})$")).optional().describe("The updated version of the AgentCore Runtime for the endpoint."),
     description: z.string().min(1).max(256).optional().describe("The updated description of the AgentCore Runtime endpoint."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure idempotency of the request."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure idempotency of the request."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               agentRuntimeId: String(params.agentRuntimeId),
               endpointName: String(params.endpointName),
@@ -437,7 +461,7 @@ server.registerTool(
       const body = {
               "agentRuntimeVersion": params.agentRuntimeVersion,
               "description": params.description,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
             };
       const result = await callApi("PUT", "/runtimes/{agentRuntimeId}/runtime-endpoints/{endpointName}/", body, pathParams, undefined);
       return {
@@ -457,21 +481,24 @@ server.registerTool(
 server.registerTool(
   "delete-agent-runtime-endpoint",
   {
-    description: "Deletes an AAgentCore Runtime endpoint.",
+    description: "Deletes an AAgentCore Runtime endpoint. [idempotent]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime associated with the endpoint."),
-    endpointName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the AgentCore Runtime endpoint to delete."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure idempotency of the request."),
+    endpointName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("[SENSITIVE] The name of the AgentCore Runtime endpoint to delete."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure idempotency of the request."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               agentRuntimeId: String(params.agentRuntimeId),
               endpointName: String(params.endpointName),
             };
-      const queryParams = {
-              "clientToken": params.clientToken !== undefined ? String(params.clientToken) : undefined,
+      const queryParams: Record<string, string | undefined> = {
+              "clientToken": clientTokenValue !== undefined ? String(clientTokenValue) : undefined,
             };
       const result = await callApi("DELETE", "/runtimes/{agentRuntimeId}/runtime-endpoints/{endpointName}/", undefined, pathParams, queryParams);
       return {
@@ -491,7 +518,7 @@ server.registerTool(
 server.registerTool(
   "list-agent-runtime-endpoints",
   {
-    description: "Lists all endpoints for a specific Amazon Secure Agent. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: runtimeEndpoints]",
+    description: "Lists all endpoints for a specific Amazon Secure Agent. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: runtimeEndpoints]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime to list endpoints for."),
     maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in the response."),
@@ -499,11 +526,13 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               agentRuntimeId: String(params.agentRuntimeId),
             };
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
             };
@@ -525,30 +554,33 @@ server.registerTool(
 server.registerTool(
   "create-agent-runtime",
   {
-    description: "Creates an Amazon Bedrock AgentCore Runtime.",
+    description: "Creates an Amazon Bedrock AgentCore Runtime. [idempotent]",
     inputSchema: z.object({
     agentRuntimeName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the AgentCore Runtime."),
     agentRuntimeArtifact: z.union([z.object({ containerConfiguration: z.object({ containerUri: z.string().min(1).max(1024).regex(new RegExp("^([0-9]{12})\\.dkr\\.ecr\\.([a-z0-9-]+)\\.amazonaws\\.com/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*)(?::([^:@]{1,300}))?(?:@(.+))?$")) }) }), z.object({ codeConfiguration: z.object({ code: z.union([z.object({ s3: z.object({ bucket: z.string(), prefix: z.string(), versionId: z.string().optional() }) })]), runtime: z.enum(["PYTHON_3_10", "PYTHON_3_11", "PYTHON_3_12", "PYTHON_3_13"]), entryPoint: z.array(z.string().min(1).max(128)) }) })]).describe("The artifact of the AgentCore Runtime."),
     roleArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$")).describe("The IAM role ARN that provides permissions for the AgentCore Runtime."),
     networkConfiguration: z.object({ networkMode: z.enum(["PUBLIC", "VPC"]), networkModeConfig: z.object({ securityGroups: z.array(z.string().regex(new RegExp("^sg-[0-9a-zA-Z]{8,17}$"))), subnets: z.array(z.string().regex(new RegExp("^subnet-[0-9a-zA-Z]{8,17}$"))) }).optional() }).describe("The network configuration for the AgentCore Runtime."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure idempotency of the request."),
-    description: z.string().min(1).max(4096).optional().describe("The description of the AgentCore Runtime."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure idempotency of the request."),
+    description: z.string().min(1).max(4096).optional().describe("[SENSITIVE] The description of the AgentCore Runtime."),
     authorizerConfiguration: z.union([z.object({ customJWTAuthorizer: z.object({ discoveryUrl: z.string().regex(new RegExp("^.+/\\.well-known/openid-configuration$")), allowedAudience: z.array(z.string()).optional(), allowedClients: z.array(z.string()).optional(), allowedScopes: z.array(z.string().min(1).max(255).regex(new RegExp("^[\\x21\\x23-\\x5B\\x5D-\\x7E]+$"))).optional(), customClaims: z.array(z.object({ inboundTokenClaimName: z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-:]+$")), inboundTokenClaimValueType: z.enum(["STRING", "STRING_ARRAY"]), authorizingClaimMatchValue: z.object({ claimMatchValue: z.union([z.object({ matchValueString: z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")) }), z.object({ matchValueStringList: z.array(z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$"))) })]), claimMatchOperator: z.enum(["EQUALS", "CONTAINS", "CONTAINS_ANY"]) }) })).optional() }) })]).optional().describe("The authorizer configuration for the AgentCore Runtime."),
     requestHeaderConfiguration: z.union([z.object({ requestHeaderAllowlist: z.array(z.string().min(1).max(256).regex(new RegExp("^(Authorization|X-Amzn-Bedrock-AgentCore-Runtime-Custom-[a-zA-Z0-9-]+)$"))) })]).optional().describe("Configuration for HTTP request headers that will be passed through to the runtime."),
     protocolConfiguration: z.object({ serverProtocol: z.enum(["MCP", "HTTP", "A2A"]) }).optional(),
     lifecycleConfiguration: z.object({ idleRuntimeSessionTimeout: z.number().int().optional(), maxLifetime: z.number().int().optional() }).optional().describe("The life cycle configuration for the AgentCore Runtime."),
-    environmentVariables: z.record(z.string(), z.string().min(0).max(5000)).optional().describe("Environment variables to set in the AgentCore Runtime environment."),
+    environmentVariables: z.record(z.string(), z.string().min(0).max(5000)).optional().describe("[SENSITIVE] Environment variables to set in the AgentCore Runtime environment."),
     tags: z.record(z.string(), z.string().min(0).max(256).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"))).optional().describe("A map of tag keys and values to assign to the agent runtime. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const body = {
               "agentRuntimeName": params.agentRuntimeName,
               "agentRuntimeArtifact": params.agentRuntimeArtifact,
               "roleArn": params.roleArn,
               "networkConfiguration": params.networkConfiguration,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "description": params.description,
               "authorizerConfiguration": params.authorizerConfiguration,
               "requestHeaderConfiguration": params.requestHeaderConfiguration,
@@ -575,18 +607,20 @@ server.registerTool(
 server.registerTool(
   "get-agent-runtime",
   {
-    description: "Gets an Amazon Bedrock AgentCore Runtime.",
+    description: "Gets an Amazon Bedrock AgentCore Runtime. [read-only]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime to retrieve."),
     agentRuntimeVersion: z.string().min(1).max(5).regex(new RegExp("^([1-9][0-9]{0,4})$")).optional().describe("The version of the AgentCore Runtime to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               agentRuntimeId: String(params.agentRuntimeId),
             };
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "version": params.agentRuntimeVersion !== undefined ? String(params.agentRuntimeVersion) : undefined,
             };
       const result = await callApi("GET", "/runtimes/{agentRuntimeId}/", undefined, pathParams, queryParams);
@@ -607,23 +641,26 @@ server.registerTool(
 server.registerTool(
   "update-agent-runtime",
   {
-    description: "Updates an existing Amazon Secure Agent.",
+    description: "Updates an existing Amazon Secure Agent. [idempotent]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime to update."),
     agentRuntimeArtifact: z.union([z.object({ containerConfiguration: z.object({ containerUri: z.string().min(1).max(1024).regex(new RegExp("^([0-9]{12})\\.dkr\\.ecr\\.([a-z0-9-]+)\\.amazonaws\\.com/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*)(?::([^:@]{1,300}))?(?:@(.+))?$")) }) }), z.object({ codeConfiguration: z.object({ code: z.union([z.object({ s3: z.object({ bucket: z.string(), prefix: z.string(), versionId: z.string().optional() }) })]), runtime: z.enum(["PYTHON_3_10", "PYTHON_3_11", "PYTHON_3_12", "PYTHON_3_13"]), entryPoint: z.array(z.string().min(1).max(128)) }) })]).describe("The updated artifact of the AgentCore Runtime."),
     roleArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$")).describe("The updated IAM role ARN that provides permissions for the AgentCore Runtime."),
     networkConfiguration: z.object({ networkMode: z.enum(["PUBLIC", "VPC"]), networkModeConfig: z.object({ securityGroups: z.array(z.string().regex(new RegExp("^sg-[0-9a-zA-Z]{8,17}$"))), subnets: z.array(z.string().regex(new RegExp("^subnet-[0-9a-zA-Z]{8,17}$"))) }).optional() }).describe("The updated network configuration for the AgentCore Runtime."),
-    description: z.string().min(1).max(4096).optional().describe("The updated description of the AgentCore Runtime."),
+    description: z.string().min(1).max(4096).optional().describe("[SENSITIVE] The updated description of the AgentCore Runtime."),
     authorizerConfiguration: z.union([z.object({ customJWTAuthorizer: z.object({ discoveryUrl: z.string().regex(new RegExp("^.+/\\.well-known/openid-configuration$")), allowedAudience: z.array(z.string()).optional(), allowedClients: z.array(z.string()).optional(), allowedScopes: z.array(z.string().min(1).max(255).regex(new RegExp("^[\\x21\\x23-\\x5B\\x5D-\\x7E]+$"))).optional(), customClaims: z.array(z.object({ inboundTokenClaimName: z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-:]+$")), inboundTokenClaimValueType: z.enum(["STRING", "STRING_ARRAY"]), authorizingClaimMatchValue: z.object({ claimMatchValue: z.union([z.object({ matchValueString: z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")) }), z.object({ matchValueStringList: z.array(z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$"))) })]), claimMatchOperator: z.enum(["EQUALS", "CONTAINS", "CONTAINS_ANY"]) }) })).optional() }) })]).optional().describe("The updated authorizer configuration for the AgentCore Runtime."),
     requestHeaderConfiguration: z.union([z.object({ requestHeaderAllowlist: z.array(z.string().min(1).max(256).regex(new RegExp("^(Authorization|X-Amzn-Bedrock-AgentCore-Runtime-Custom-[a-zA-Z0-9-]+)$"))) })]).optional().describe("The updated configuration for HTTP request headers that will be passed through to the runtime."),
     protocolConfiguration: z.object({ serverProtocol: z.enum(["MCP", "HTTP", "A2A"]) }).optional(),
     lifecycleConfiguration: z.object({ idleRuntimeSessionTimeout: z.number().int().optional(), maxLifetime: z.number().int().optional() }).optional().describe("The updated life cycle configuration for the AgentCore Runtime."),
-    environmentVariables: z.record(z.string(), z.string().min(0).max(5000)).optional().describe("Updated environment variables to set in the AgentCore Runtime environment."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure idempotency of the request."),
+    environmentVariables: z.record(z.string(), z.string().min(0).max(5000)).optional().describe("[SENSITIVE] Updated environment variables to set in the AgentCore Runtime environment."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure idempotency of the request."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               agentRuntimeId: String(params.agentRuntimeId),
             };
@@ -637,7 +674,7 @@ server.registerTool(
               "protocolConfiguration": params.protocolConfiguration,
               "lifecycleConfiguration": params.lifecycleConfiguration,
               "environmentVariables": params.environmentVariables,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
             };
       const result = await callApi("PUT", "/runtimes/{agentRuntimeId}/", body, pathParams, undefined);
       return {
@@ -657,19 +694,22 @@ server.registerTool(
 server.registerTool(
   "delete-agent-runtime",
   {
-    description: "Deletes an Amazon Bedrock AgentCore Runtime.",
+    description: "Deletes an Amazon Bedrock AgentCore Runtime. [idempotent]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime to delete."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, the service ignores the request but does not return an error."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, the service ignores the request but does not return an error."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               agentRuntimeId: String(params.agentRuntimeId),
             };
-      const queryParams = {
-              "clientToken": params.clientToken !== undefined ? String(params.clientToken) : undefined,
+      const queryParams: Record<string, string | undefined> = {
+              "clientToken": clientTokenValue !== undefined ? String(clientTokenValue) : undefined,
             };
       const result = await callApi("DELETE", "/runtimes/{agentRuntimeId}/", undefined, pathParams, queryParams);
       return {
@@ -689,15 +729,17 @@ server.registerTool(
 server.registerTool(
   "list-agent-runtimes",
   {
-    description: "Lists all Amazon Secure Agents in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: agentRuntimes]",
+    description: "Lists all Amazon Secure Agents in your account. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: agentRuntimes]",
     inputSchema: z.object({
     maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in the response."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A token to retrieve the next page of results."),
   }),
   },
   async (params) => {
+    
+    
     try {
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
             };
@@ -719,7 +761,7 @@ server.registerTool(
 server.registerTool(
   "list-agent-runtime-versions",
   {
-    description: "Lists all versions of a specific Amazon Secure Agent. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: agentRuntimes]",
+    description: "Lists all versions of a specific Amazon Secure Agent. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: agentRuntimes]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime to list versions for."),
     maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in the response."),
@@ -727,11 +769,13 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               agentRuntimeId: String(params.agentRuntimeId),
             };
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
             };
@@ -753,12 +797,14 @@ server.registerTool(
 server.registerTool(
   "get-api-key-credential-provider",
   {
-    description: "Retrieves information about an API key credential provider.",
+    description: "Retrieves information about an API key credential provider. [read-only]",
     inputSchema: z.object({
     name: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\-_]+$")).describe("The name of the API key credential provider to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "name": params.name,
@@ -781,13 +827,15 @@ server.registerTool(
 server.registerTool(
   "update-api-key-credential-provider",
   {
-    description: "Updates an existing API key credential provider.",
+    description: "Updates an existing API key credential provider. [idempotent]",
     inputSchema: z.object({
     name: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\-_]+$")).describe("The name of the API key credential provider to update."),
-    apiKey: z.string().min(1).max(65536).describe("The new API key to use for authentication. This value replaces the existing API key and is encrypted and stored securely."),
+    apiKey: z.string().min(1).max(65536).describe("[SENSITIVE] The new API key to use for authentication. This value replaces the existing API key and is encrypted and stored securely."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "name": params.name,
@@ -811,12 +859,14 @@ server.registerTool(
 server.registerTool(
   "delete-api-key-credential-provider",
   {
-    description: "Deletes an API key credential provider.",
+    description: "Deletes an API key credential provider. [idempotent]",
     inputSchema: z.object({
     name: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\-_]+$")).describe("The name of the API key credential provider to delete."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "name": params.name,
@@ -839,13 +889,15 @@ server.registerTool(
 server.registerTool(
   "list-api-key-credential-providers",
   {
-    description: "Lists all API key credential providers in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: credentialProviders]",
+    description: "Lists all API key credential providers in your account. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: credentialProviders]",
     inputSchema: z.object({
     nextToken: z.string().optional().describe("Pagination token."),
     maxResults: z.number().int().min(1).max(100).optional().describe("Maximum number of results to return."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "nextToken": params.nextToken,
@@ -869,20 +921,23 @@ server.registerTool(
 server.registerTool(
   "create-browser",
   {
-    description: "Creates a custom browser.",
+    description: "Creates a custom browser. [idempotent]",
     inputSchema: z.object({
     name: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the browser. The name must be unique within your account."),
-    description: z.string().min(1).max(4096).optional().describe("The description of the browser."),
+    description: z.string().min(1).max(4096).optional().describe("[SENSITIVE] The description of the browser."),
     executionRoleArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$")).optional().describe("The Amazon Resource Name (ARN) of the IAM role that provides permissions for the browser to access Amazon Web Services services."),
     networkConfiguration: z.object({ networkMode: z.enum(["PUBLIC", "VPC"]), vpcConfig: z.object({ securityGroups: z.array(z.string().regex(new RegExp("^sg-[0-9a-zA-Z]{8,17}$"))), subnets: z.array(z.string().regex(new RegExp("^subnet-[0-9a-zA-Z]{8,17}$"))) }).optional() }).describe("The network configuration for the browser. This configuration specifies the network mode for the browser."),
     recording: z.object({ enabled: z.boolean().optional(), s3Location: z.object({ bucket: z.string(), prefix: z.string(), versionId: z.string().optional() }).optional() }).optional().describe("The recording configuration for the browser. When enabled, browser sessions are recorded and stored in the specified Amazon S3 location."),
     browserSigning: z.object({ enabled: z.boolean() }).optional().describe("The browser signing configuration that enables cryptographic agent identification using HTTP message signatures for web bot authentication."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request but does not return an error."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request but does not return an error."),
     tags: z.record(z.string(), z.string().min(0).max(256).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"))).optional().describe("A map of tag keys and values to assign to the browser. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const body = {
               "name": params.name,
               "description": params.description,
@@ -890,7 +945,7 @@ server.registerTool(
               "networkConfiguration": params.networkConfiguration,
               "recording": params.recording,
               "browserSigning": params.browserSigning,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "tags": params.tags,
             };
       const result = await callApi("PUT", "/browsers", body, undefined, undefined);
@@ -911,12 +966,14 @@ server.registerTool(
 server.registerTool(
   "get-browser",
   {
-    description: "Gets information about a custom browser.",
+    description: "Gets information about a custom browser. [read-only]",
     inputSchema: z.object({
     browserId: z.string().regex(new RegExp("^(aws\\.browser\\.v1|[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10})$")).describe("The unique identifier of the browser to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               browserId: String(params.browserId),
@@ -939,19 +996,22 @@ server.registerTool(
 server.registerTool(
   "delete-browser",
   {
-    description: "Deletes a custom browser.",
+    description: "Deletes a custom browser. [idempotent]",
     inputSchema: z.object({
     browserId: z.string().regex(new RegExp("^(aws\\.browser\\.v1|[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10})$")).describe("The unique identifier of the browser to delete."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure idempotency of the request."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure idempotency of the request."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               browserId: String(params.browserId),
             };
-      const queryParams = {
-              "clientToken": params.clientToken !== undefined ? String(params.clientToken) : undefined,
+      const queryParams: Record<string, string | undefined> = {
+              "clientToken": clientTokenValue !== undefined ? String(clientTokenValue) : undefined,
             };
       const result = await callApi("DELETE", "/browsers/{browserId}", undefined, pathParams, queryParams);
       return {
@@ -971,7 +1031,7 @@ server.registerTool(
 server.registerTool(
   "list-browsers",
   {
-    description: "Lists all custom browsers in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: browserSummaries]",
+    description: "Lists all custom browsers in your account. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: browserSummaries]",
     inputSchema: z.object({
     maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in a single call. The default value is 10. The maximum value is 50."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results."),
@@ -979,8 +1039,10 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
               "type": params.type !== undefined ? String(params.type) : undefined,
@@ -1003,24 +1065,27 @@ server.registerTool(
 server.registerTool(
   "create-code-interpreter",
   {
-    description: "Creates a custom code interpreter.",
+    description: "Creates a custom code interpreter. [idempotent]",
     inputSchema: z.object({
     name: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the code interpreter. The name must be unique within your account."),
-    description: z.string().min(1).max(4096).optional().describe("The description of the code interpreter."),
+    description: z.string().min(1).max(4096).optional().describe("[SENSITIVE] The description of the code interpreter."),
     executionRoleArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$")).optional().describe("The Amazon Resource Name (ARN) of the IAM role that provides permissions for the code interpreter to access Amazon Web Services services."),
     networkConfiguration: z.object({ networkMode: z.enum(["PUBLIC", "SANDBOX", "VPC"]), vpcConfig: z.object({ securityGroups: z.array(z.string().regex(new RegExp("^sg-[0-9a-zA-Z]{8,17}$"))), subnets: z.array(z.string().regex(new RegExp("^subnet-[0-9a-zA-Z]{8,17}$"))) }).optional() }).describe("The network configuration for the code interpreter. This configuration specifies the network mode for the code interpreter."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request but does not return an error."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request but does not return an error."),
     tags: z.record(z.string(), z.string().min(0).max(256).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"))).optional().describe("A map of tag keys and values to assign to the code interpreter. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const body = {
               "name": params.name,
               "description": params.description,
               "executionRoleArn": params.executionRoleArn,
               "networkConfiguration": params.networkConfiguration,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "tags": params.tags,
             };
       const result = await callApi("PUT", "/code-interpreters", body, undefined, undefined);
@@ -1041,12 +1106,14 @@ server.registerTool(
 server.registerTool(
   "get-code-interpreter",
   {
-    description: "Gets information about a custom code interpreter.",
+    description: "Gets information about a custom code interpreter. [read-only]",
     inputSchema: z.object({
     codeInterpreterId: z.string().regex(new RegExp("^(aws\\.codeinterpreter\\.v1|[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10})$")).describe("The unique identifier of the code interpreter to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               codeInterpreterId: String(params.codeInterpreterId),
@@ -1069,19 +1136,22 @@ server.registerTool(
 server.registerTool(
   "delete-code-interpreter",
   {
-    description: "Deletes a custom code interpreter.",
+    description: "Deletes a custom code interpreter. [idempotent]",
     inputSchema: z.object({
     codeInterpreterId: z.string().regex(new RegExp("^(aws\\.codeinterpreter\\.v1|[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10})$")).describe("The unique identifier of the code interpreter to delete."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure idempotency of the request."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure idempotency of the request."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               codeInterpreterId: String(params.codeInterpreterId),
             };
-      const queryParams = {
-              "clientToken": params.clientToken !== undefined ? String(params.clientToken) : undefined,
+      const queryParams: Record<string, string | undefined> = {
+              "clientToken": clientTokenValue !== undefined ? String(clientTokenValue) : undefined,
             };
       const result = await callApi("DELETE", "/code-interpreters/{codeInterpreterId}", undefined, pathParams, queryParams);
       return {
@@ -1101,7 +1171,7 @@ server.registerTool(
 server.registerTool(
   "list-code-interpreters",
   {
-    description: "Lists all custom code interpreters in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: codeInterpreterSummaries]",
+    description: "Lists all custom code interpreters in your account. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: codeInterpreterSummaries]",
     inputSchema: z.object({
     maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in the response."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A token to retrieve the next page of results."),
@@ -1109,8 +1179,10 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
               "type": params.type !== undefined ? String(params.type) : undefined,
@@ -1135,18 +1207,21 @@ server.registerTool(
   {
     description: "Creates a custom evaluator for agent quality assessment. Custom evaluators use LLM-as-a-Judge configurations with user-defined prompts, rating scales, and model settings to evaluate agent performance at tool call, trace, or session levels.",
     inputSchema: z.object({
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
     evaluatorName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the evaluator. Must be unique within your account."),
-    description: z.string().min(1).max(200).optional().describe("The description of the evaluator that explains its purpose and evaluation criteria."),
+    description: z.string().min(1).max(200).optional().describe("[SENSITIVE] The description of the evaluator that explains its purpose and evaluation criteria."),
     evaluatorConfig: z.union([z.object({ llmAsAJudge: z.object({ instructions: z.string(), ratingScale: z.union([z.object({ numerical: z.array(z.object({ definition: z.string(), value: z.number(), label: z.string() })) }), z.object({ categorical: z.array(z.object({ definition: z.string(), label: z.string() })) })]), modelConfig: z.union([z.object({ bedrockEvaluatorModelConfig: z.object({ modelId: z.string(), inferenceConfig: z.object({ maxTokens: z.number().int().optional(), temperature: z.number().optional(), topP: z.number().optional(), stopSequences: z.array(z.string().min(1)).optional() }).optional(), additionalModelRequestFields: z.object({}).passthrough().optional() }) })]) }) })]).describe("The configuration for the evaluator, including LLM-as-a-Judge settings with instructions, rating scale, and model configuration."),
     level: z.enum(["TOOL_CALL", "TRACE", "SESSION"]).describe("The evaluation level that determines the scope of evaluation. Valid values are TOOL_CALL for individual tool invocations, TRACE for single request-response interactions, or SESSION for entire conversation sessions."),
     tags: z.record(z.string(), z.string().min(0).max(256).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$"))).optional().describe("A map of tag keys and values to assign to an AgentCore Evaluator. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const body = {
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "evaluatorName": params.evaluatorName,
               "description": params.description,
               "evaluatorConfig": params.evaluatorConfig,
@@ -1171,12 +1246,14 @@ server.registerTool(
 server.registerTool(
   "get-evaluator",
   {
-    description: "Retrieves detailed information about an evaluator, including its configuration, status, and metadata. Works with both built-in and custom evaluators.",
+    description: "Retrieves detailed information about an evaluator, including its configuration, status, and metadata. Works with both built-in and custom evaluators. [read-only]",
     inputSchema: z.object({
     evaluatorId: z.string().regex(new RegExp("^(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})$")).describe("The unique identifier of the evaluator to retrieve. Can be a built-in evaluator ID (e.g., Builtin.Helpfulness) or a custom evaluator ID."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               evaluatorId: String(params.evaluatorId),
@@ -1199,22 +1276,25 @@ server.registerTool(
 server.registerTool(
   "update-evaluator",
   {
-    description: "Updates a custom evaluator's configuration, description, or evaluation level. Built-in evaluators cannot be updated. The evaluator must not be locked for modification.",
+    description: "Updates a custom evaluator's configuration, description, or evaluation level. Built-in evaluators cannot be updated. The evaluator must not be locked for modification. [idempotent]",
     inputSchema: z.object({
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
     evaluatorId: z.string().regex(new RegExp("^(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})$")).describe("The unique identifier of the evaluator to update."),
-    description: z.string().min(1).max(200).optional().describe("The updated description of the evaluator."),
+    description: z.string().min(1).max(200).optional().describe("[SENSITIVE] The updated description of the evaluator."),
     evaluatorConfig: z.union([z.object({ llmAsAJudge: z.object({ instructions: z.string(), ratingScale: z.union([z.object({ numerical: z.array(z.object({ definition: z.string(), value: z.number(), label: z.string() })) }), z.object({ categorical: z.array(z.object({ definition: z.string(), label: z.string() })) })]), modelConfig: z.union([z.object({ bedrockEvaluatorModelConfig: z.object({ modelId: z.string(), inferenceConfig: z.object({ maxTokens: z.number().int().optional(), temperature: z.number().optional(), topP: z.number().optional(), stopSequences: z.array(z.string().min(1)).optional() }).optional(), additionalModelRequestFields: z.object({}).passthrough().optional() }) })]) }) })]).optional().describe("The updated configuration for the evaluator, including LLM-as-a-Judge settings with instructions, rating scale, and model configuration."),
     level: z.enum(["TOOL_CALL", "TRACE", "SESSION"]).optional().describe("The updated evaluation level (TOOL_CALL, TRACE, or SESSION) that determines the scope of evaluation."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               evaluatorId: String(params.evaluatorId),
             };
       const body = {
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "description": params.description,
               "evaluatorConfig": params.evaluatorConfig,
               "level": params.level,
@@ -1237,12 +1317,14 @@ server.registerTool(
 server.registerTool(
   "delete-evaluator",
   {
-    description: "Deletes a custom evaluator. Builtin evaluators cannot be deleted. The evaluator must not be referenced by any active online evaluation configurations.",
+    description: "Deletes a custom evaluator. Builtin evaluators cannot be deleted. The evaluator must not be referenced by any active online evaluation configurations. [idempotent]",
     inputSchema: z.object({
     evaluatorId: z.string().regex(new RegExp("^(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})$")).describe("The unique identifier of the evaluator to delete."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               evaluatorId: String(params.evaluatorId),
@@ -1265,15 +1347,17 @@ server.registerTool(
 server.registerTool(
   "list-evaluators",
   {
-    description: "Lists all available evaluators, including both builtin evaluators provided by the service and custom evaluators created by the user. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: evaluators]",
+    description: "Lists all available evaluators, including both builtin evaluators provided by the service and custom evaluators created by the user. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: evaluators]",
     inputSchema: z.object({
     nextToken: z.string().optional().describe("The pagination token from a previous request to retrieve the next page of results."),
     maxResults: z.number().int().optional().describe("The maximum number of evaluators to return in a single response."),
   }),
   },
   async (params) => {
+    
+    
     try {
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
             };
@@ -1295,11 +1379,11 @@ server.registerTool(
 server.registerTool(
   "create-gateway",
   {
-    description: "Creates a gateway for Amazon Bedrock Agent. A gateway serves as an integration point between your agent and external services. If you specify CUSTOM_JWT as the authorizerType, you must provide an authorizerConfiguration.",
+    description: "Creates a gateway for Amazon Bedrock Agent. A gateway serves as an integration point between your agent and external services. If you specify CUSTOM_JWT as the authorizerType, you must provide an authorizerConfiguration. [idempotent]",
     inputSchema: z.object({
-    name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).describe("The name of the gateway. The name must be unique within your account."),
-    description: z.string().min(1).max(200).optional().describe("The description of the gateway."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
+    name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).describe("[SENSITIVE] The name of the gateway. The name must be unique within your account."),
+    description: z.string().min(1).max(200).optional().describe("[SENSITIVE] The description of the gateway."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
     roleArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$")).describe("The Amazon Resource Name (ARN) of the IAM role that provides permissions for the gateway to access Amazon Web Services services."),
     protocolType: z.enum(["MCP"]).describe("The protocol type for the gateway."),
     protocolConfiguration: z.union([z.object({ mcp: z.object({ supportedVersions: z.array(z.string().default("2025-03-26")).optional(), instructions: z.string().min(1).max(2048).optional(), searchType: z.enum(["SEMANTIC"]).optional() }) })]).optional().describe("The configuration settings for the protocol specified in the protocolType parameter."),
@@ -1313,11 +1397,14 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const body = {
               "name": params.name,
               "description": params.description,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "roleArn": params.roleArn,
               "protocolType": params.protocolType,
               "protocolConfiguration": params.protocolConfiguration,
@@ -1347,12 +1434,14 @@ server.registerTool(
 server.registerTool(
   "delete-gateway",
   {
-    description: "Deletes a gateway.",
+    description: "Deletes a gateway. [idempotent]",
     inputSchema: z.object({
     gatewayIdentifier: z.string().regex(new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$")).describe("The identifier of the gateway to delete."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               gatewayIdentifier: String(params.gatewayIdentifier),
@@ -1375,12 +1464,14 @@ server.registerTool(
 server.registerTool(
   "get-gateway",
   {
-    description: "Retrieves information about a specific Gateway.",
+    description: "Retrieves information about a specific Gateway. [read-only]",
     inputSchema: z.object({
     gatewayIdentifier: z.string().regex(new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$")).describe("The identifier of the gateway to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               gatewayIdentifier: String(params.gatewayIdentifier),
@@ -1403,15 +1494,17 @@ server.registerTool(
 server.registerTool(
   "list-gateways",
   {
-    description: "Lists all gateways in the account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: items]",
+    description: "Lists all gateways in the account. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: items]",
     inputSchema: z.object({
     maxResults: z.number().int().min(1).max(1000).optional().describe("The maximum number of results to return in the response. If the total number of results is greater than this value, use the token returned in the response in the nextToken field when making another request to return the next batch of results."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("If the total number of results is greater than the maxResults value provided in the request, enter the token returned in the nextToken field in the response in this field to return the next batch of results."),
   }),
   },
   async (params) => {
+    
+    
     try {
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
             };
@@ -1433,11 +1526,11 @@ server.registerTool(
 server.registerTool(
   "update-gateway",
   {
-    description: "Updates an existing gateway.",
+    description: "Updates an existing gateway. [idempotent]",
     inputSchema: z.object({
     gatewayIdentifier: z.string().regex(new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$")).describe("The identifier of the gateway to update."),
-    name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).describe("The name of the gateway. This name must be the same as the one when the gateway was created."),
-    description: z.string().min(1).max(200).optional().describe("The updated description for the gateway."),
+    name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).describe("[SENSITIVE] The name of the gateway. This name must be the same as the one when the gateway was created."),
+    description: z.string().min(1).max(200).optional().describe("[SENSITIVE] The updated description for the gateway."),
     roleArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$")).describe("The updated IAM role ARN that provides permissions for the gateway."),
     protocolType: z.enum(["MCP"]).describe("The updated protocol type for the gateway."),
     protocolConfiguration: z.union([z.object({ mcp: z.object({ supportedVersions: z.array(z.string().default("2025-03-26")).optional(), instructions: z.string().min(1).max(2048).optional(), searchType: z.enum(["SEMANTIC"]).optional() }) })]).optional(),
@@ -1450,6 +1543,8 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               gatewayIdentifier: String(params.gatewayIdentifier),
@@ -1485,26 +1580,29 @@ server.registerTool(
 server.registerTool(
   "create-gateway-target",
   {
-    description: "Creates a target for a gateway. A target defines an endpoint that the gateway can connect to.",
+    description: "Creates a target for a gateway. A target defines an endpoint that the gateway can connect to. [idempotent]",
     inputSchema: z.object({
     gatewayIdentifier: z.string().regex(new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$")).describe("The identifier of the gateway to create a target for."),
-    name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).describe("The name of the gateway target. The name must be unique within the gateway."),
-    description: z.string().min(1).max(200).optional().describe("The description of the gateway target."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
+    name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).describe("[SENSITIVE] The name of the gateway target. The name must be unique within the gateway."),
+    description: z.string().min(1).max(200).optional().describe("[SENSITIVE] The description of the gateway target."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
     targetConfiguration: z.union([z.object({ mcp: z.union([z.object({ openApiSchema: z.union([z.object({ s3: z.object({ uri: z.string().regex(new RegExp("^s3://.{1,2043}$")).optional(), bucketOwnerAccountId: z.string().regex(new RegExp("^[0-9]{12}$")).optional() }) }), z.object({ inlinePayload: z.string() })]) }), z.object({ smithyModel: z.union([z.object({ s3: z.object({ uri: z.string().regex(new RegExp("^s3://.{1,2043}$")).optional(), bucketOwnerAccountId: z.string().regex(new RegExp("^[0-9]{12}$")).optional() }) }), z.object({ inlinePayload: z.string() })]) }), z.object({ lambda: z.object({ lambdaArn: z.string().min(1).max(170).regex(new RegExp("^arn:(aws[a-zA-Z-]*)?:lambda:([a-z]{2}(-gov)?-[a-z]+-\\d{1}):(\\d{12}):function:([a-zA-Z0-9-_.]+)(:(\\$LATEST|[a-zA-Z0-9-]+))?$")), toolSchema: z.union([z.object({ s3: z.object({ uri: z.string().regex(new RegExp("^s3://.{1,2043}$")).optional(), bucketOwnerAccountId: z.string().regex(new RegExp("^[0-9]{12}$")).optional() }) }), z.object({ inlinePayload: z.array(z.object({ name: z.string(), description: z.string(), inputSchema: z.object({ type: z.enum(["string", "number", "object", "array", "boolean", "integer"]), properties: z.record(z.string(), z.unknown()).optional(), required: z.array(z.unknown()).optional(), items: z.unknown().optional(), description: z.string().optional() }), outputSchema: z.object({ type: z.enum(["string", "number", "object", "array", "boolean", "integer"]), properties: z.record(z.string(), z.unknown()).optional(), required: z.array(z.unknown()).optional(), items: z.unknown().optional(), description: z.string().optional() }).optional() })) })]) }) }), z.object({ mcpServer: z.object({ endpoint: z.string() }) }), z.object({ apiGateway: z.object({ restApiId: z.string(), stage: z.string(), apiGatewayToolConfiguration: z.object({ toolOverrides: z.array(z.object({ name: z.string(), description: z.string().optional(), path: z.string(), method: z.enum(["GET", "DELETE", "HEAD", "OPTIONS", "PATCH", "PUT", "POST"]) })).optional(), toolFilters: z.array(z.object({ filterPath: z.string(), methods: z.array(z.enum(["GET", "DELETE", "HEAD", "OPTIONS", "PATCH", "PUT", "POST"])) })) }) }) })]) })]).describe("The configuration settings for the target, including endpoint information and schema definitions."),
     credentialProviderConfigurations: z.array(z.object({ credentialProviderType: z.enum(["GATEWAY_IAM_ROLE", "OAUTH", "API_KEY"]), credentialProvider: z.union([z.object({ oauthCredentialProvider: z.object({ providerArn: z.string().regex(new RegExp("^arn:([^:]*):([^:]*):([^:]*):([0-9]{12})?:(.+)$")), scopes: z.array(z.string().min(1).max(64)), customParameters: z.record(z.string(), z.string().min(1).max(2048)).optional(), grantType: z.enum(["CLIENT_CREDENTIALS", "AUTHORIZATION_CODE"]).optional(), defaultReturnUrl: z.string().min(1).max(2048).regex(new RegExp("^\\w+:(\\/?\\/?)[^\\s]+$")).optional() }) }), z.object({ apiKeyCredentialProvider: z.object({ providerArn: z.string().regex(new RegExp("^arn:([^:]*):([^:]*):([^:]*):([0-9]{12})?:(.+)$")), credentialParameterName: z.string().min(1).max(64).optional(), credentialPrefix: z.string().min(1).max(64).optional(), credentialLocation: z.enum(["HEADER", "QUERY_PARAMETER"]).optional() }) })]).optional() })).optional().describe("The credential provider configurations for the target. These configurations specify how the gateway authenticates with the target endpoint."),
     metadataConfiguration: z.object({ allowedRequestHeaders: z.array(z.string().min(1).max(100)).optional(), allowedQueryParameters: z.array(z.string().min(1).max(40)).optional(), allowedResponseHeaders: z.array(z.string().min(1).max(100)).optional() }).optional().describe("Optional configuration for HTTP header and query parameter propagation to and from the gateway target."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               gatewayIdentifier: String(params.gatewayIdentifier),
             };
       const body = {
               "name": params.name,
               "description": params.description,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "targetConfiguration": params.targetConfiguration,
               "credentialProviderConfigurations": params.credentialProviderConfigurations,
               "metadataConfiguration": params.metadataConfiguration,
@@ -1527,13 +1625,15 @@ server.registerTool(
 server.registerTool(
   "delete-gateway-target",
   {
-    description: "Deletes a gateway target.",
+    description: "Deletes a gateway target. [idempotent]",
     inputSchema: z.object({
     gatewayIdentifier: z.string().regex(new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$")).describe("The unique identifier of the gateway associated with the target."),
     targetId: z.string().regex(new RegExp("^[0-9a-zA-Z]{10}$")).describe("The unique identifier of the gateway target to delete."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               gatewayIdentifier: String(params.gatewayIdentifier),
@@ -1557,13 +1657,15 @@ server.registerTool(
 server.registerTool(
   "get-gateway-target",
   {
-    description: "Retrieves information about a specific gateway target.",
+    description: "Retrieves information about a specific gateway target. [read-only]",
     inputSchema: z.object({
     gatewayIdentifier: z.string().regex(new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$")).describe("The identifier of the gateway that contains the target."),
     targetId: z.string().regex(new RegExp("^[0-9a-zA-Z]{10}$")).describe("The unique identifier of the target to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               gatewayIdentifier: String(params.gatewayIdentifier),
@@ -1587,7 +1689,7 @@ server.registerTool(
 server.registerTool(
   "list-gateway-targets",
   {
-    description: "Lists all targets for a specific gateway. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: items]",
+    description: "Lists all targets for a specific gateway. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: items]",
     inputSchema: z.object({
     gatewayIdentifier: z.string().regex(new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$")).describe("The identifier of the gateway to list targets for."),
     maxResults: z.number().int().min(1).max(1000).optional().describe("The maximum number of results to return in the response. If the total number of results is greater than this value, use the token returned in the response in the nextToken field when making another request to return the next batch of results."),
@@ -1595,11 +1697,13 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               gatewayIdentifier: String(params.gatewayIdentifier),
             };
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
             };
@@ -1621,13 +1725,15 @@ server.registerTool(
 server.registerTool(
   "synchronize-gateway-targets",
   {
-    description: "The gateway targets.",
+    description: "The gateway targets. [idempotent]",
     inputSchema: z.object({
     gatewayIdentifier: z.string().regex(new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$")).describe("The gateway Identifier."),
     targetIdList: z.array(z.string().regex(new RegExp("^[0-9a-zA-Z]{10}$"))).describe("The target ID list."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               gatewayIdentifier: String(params.gatewayIdentifier),
@@ -1653,18 +1759,20 @@ server.registerTool(
 server.registerTool(
   "update-gateway-target",
   {
-    description: "Updates an existing gateway target.",
+    description: "Updates an existing gateway target. [idempotent]",
     inputSchema: z.object({
     gatewayIdentifier: z.string().regex(new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$")).describe("The unique identifier of the gateway associated with the target."),
     targetId: z.string().regex(new RegExp("^[0-9a-zA-Z]{10}$")).describe("The unique identifier of the gateway target to update."),
-    name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).describe("The updated name for the gateway target."),
-    description: z.string().min(1).max(200).optional().describe("The updated description for the gateway target."),
+    name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).describe("[SENSITIVE] The updated name for the gateway target."),
+    description: z.string().min(1).max(200).optional().describe("[SENSITIVE] The updated description for the gateway target."),
     targetConfiguration: z.union([z.object({ mcp: z.union([z.object({ openApiSchema: z.union([z.object({ s3: z.object({ uri: z.string().regex(new RegExp("^s3://.{1,2043}$")).optional(), bucketOwnerAccountId: z.string().regex(new RegExp("^[0-9]{12}$")).optional() }) }), z.object({ inlinePayload: z.string() })]) }), z.object({ smithyModel: z.union([z.object({ s3: z.object({ uri: z.string().regex(new RegExp("^s3://.{1,2043}$")).optional(), bucketOwnerAccountId: z.string().regex(new RegExp("^[0-9]{12}$")).optional() }) }), z.object({ inlinePayload: z.string() })]) }), z.object({ lambda: z.object({ lambdaArn: z.string().min(1).max(170).regex(new RegExp("^arn:(aws[a-zA-Z-]*)?:lambda:([a-z]{2}(-gov)?-[a-z]+-\\d{1}):(\\d{12}):function:([a-zA-Z0-9-_.]+)(:(\\$LATEST|[a-zA-Z0-9-]+))?$")), toolSchema: z.union([z.object({ s3: z.object({ uri: z.string().regex(new RegExp("^s3://.{1,2043}$")).optional(), bucketOwnerAccountId: z.string().regex(new RegExp("^[0-9]{12}$")).optional() }) }), z.object({ inlinePayload: z.array(z.object({ name: z.string(), description: z.string(), inputSchema: z.object({ type: z.enum(["string", "number", "object", "array", "boolean", "integer"]), properties: z.record(z.string(), z.unknown()).optional(), required: z.array(z.unknown()).optional(), items: z.unknown().optional(), description: z.string().optional() }), outputSchema: z.object({ type: z.enum(["string", "number", "object", "array", "boolean", "integer"]), properties: z.record(z.string(), z.unknown()).optional(), required: z.array(z.unknown()).optional(), items: z.unknown().optional(), description: z.string().optional() }).optional() })) })]) }) }), z.object({ mcpServer: z.object({ endpoint: z.string() }) }), z.object({ apiGateway: z.object({ restApiId: z.string(), stage: z.string(), apiGatewayToolConfiguration: z.object({ toolOverrides: z.array(z.object({ name: z.string(), description: z.string().optional(), path: z.string(), method: z.enum(["GET", "DELETE", "HEAD", "OPTIONS", "PATCH", "PUT", "POST"]) })).optional(), toolFilters: z.array(z.object({ filterPath: z.string(), methods: z.array(z.enum(["GET", "DELETE", "HEAD", "OPTIONS", "PATCH", "PUT", "POST"])) })) }) }) })]) })]),
     credentialProviderConfigurations: z.array(z.object({ credentialProviderType: z.enum(["GATEWAY_IAM_ROLE", "OAUTH", "API_KEY"]), credentialProvider: z.union([z.object({ oauthCredentialProvider: z.object({ providerArn: z.string().regex(new RegExp("^arn:([^:]*):([^:]*):([^:]*):([0-9]{12})?:(.+)$")), scopes: z.array(z.string().min(1).max(64)), customParameters: z.record(z.string(), z.string().min(1).max(2048)).optional(), grantType: z.enum(["CLIENT_CREDENTIALS", "AUTHORIZATION_CODE"]).optional(), defaultReturnUrl: z.string().min(1).max(2048).regex(new RegExp("^\\w+:(\\/?\\/?)[^\\s]+$")).optional() }) }), z.object({ apiKeyCredentialProvider: z.object({ providerArn: z.string().regex(new RegExp("^arn:([^:]*):([^:]*):([^:]*):([0-9]{12})?:(.+)$")), credentialParameterName: z.string().min(1).max(64).optional(), credentialPrefix: z.string().min(1).max(64).optional(), credentialLocation: z.enum(["HEADER", "QUERY_PARAMETER"]).optional() }) })]).optional() })).optional().describe("The updated credential provider configurations for the gateway target."),
     metadataConfiguration: z.object({ allowedRequestHeaders: z.array(z.string().min(1).max(100)).optional(), allowedQueryParameters: z.array(z.string().min(1).max(40)).optional(), allowedResponseHeaders: z.array(z.string().min(1).max(100)).optional() }).optional().describe("Configuration for HTTP header and query parameter propagation to the gateway target."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               gatewayIdentifier: String(params.gatewayIdentifier),
@@ -1695,11 +1803,11 @@ server.registerTool(
 server.registerTool(
   "create-memory",
   {
-    description: "Creates a new Amazon Bedrock AgentCore Memory resource.",
+    description: "Creates a new Amazon Bedrock AgentCore Memory resource. [idempotent]",
     inputSchema: z.object({
-    clientToken: z.string().min(1).optional().describe("A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request but does not return an error."),
+    clientToken: z.string().min(1).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request but does not return an error."),
     name: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the memory. The name must be unique within your account."),
-    description: z.string().min(1).max(4096).optional().describe("The description of the memory."),
+    description: z.string().min(1).max(4096).optional().describe("[SENSITIVE] The description of the memory."),
     encryptionKeyArn: z.string().regex(new RegExp("^arn:[a-z0-9-\\.]{1,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[^/].{0,1023}$")).optional().describe("The Amazon Resource Name (ARN) of the KMS key used to encrypt the memory data."),
     memoryExecutionRoleArn: z.string().regex(new RegExp("^arn:[a-z0-9-\\.]{1,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[^/].{0,1023}$")).optional().describe("The Amazon Resource Name (ARN) of the IAM role that provides permissions for the memory to access Amazon Web Services services."),
     eventExpiryDuration: z.number().int().describe("The duration after which memory events expire. Specified as an ISO 8601 duration."),
@@ -1708,9 +1816,12 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const body = {
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "name": params.name,
               "description": params.description,
               "encryptionKeyArn": params.encryptionKeyArn,
@@ -1737,18 +1848,20 @@ server.registerTool(
 server.registerTool(
   "get-memory",
   {
-    description: "Retrieve an existing Amazon Bedrock AgentCore Memory resource.",
+    description: "Retrieve an existing Amazon Bedrock AgentCore Memory resource. [read-only]",
     inputSchema: z.object({
     memoryId: z.string().min(12).regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the memory to retrieve."),
     view: z.enum(["full", "without_decryption"]).optional().describe("The level of detail to return for the memory."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               memoryId: String(params.memoryId),
             };
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "view": params.view !== undefined ? String(params.view) : undefined,
             };
       const result = await callApi("GET", "/memories/{memoryId}/details", undefined, pathParams, queryParams);
@@ -1800,7 +1913,7 @@ server.registerTool(
         const pathParams = {
               memoryId: String(params.memoryId),
             };
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "view": params.view !== undefined ? String(params.view) : undefined,
             };
       const result = await callApi("GET", "/memories/{memoryId}/details", undefined, pathParams, queryParams);
@@ -1846,23 +1959,26 @@ server.registerTool(
 server.registerTool(
   "update-memory",
   {
-    description: "Update an Amazon Bedrock AgentCore Memory resource memory.",
+    description: "Update an Amazon Bedrock AgentCore Memory resource memory. [idempotent]",
     inputSchema: z.object({
-    clientToken: z.string().min(1).optional().describe("A client token is used for keeping track of idempotent requests. It can contain a session id which can be around 250 chars, combined with a unique AWS identifier."),
+    clientToken: z.string().min(1).optional().describe("[Auto-generated UUID if not provided] A client token is used for keeping track of idempotent requests. It can contain a session id which can be around 250 chars, combined with a unique AWS identifier."),
     memoryId: z.string().min(12).regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the memory to update."),
-    description: z.string().min(1).max(4096).optional().describe("The updated description of the AgentCore Memory resource."),
+    description: z.string().min(1).max(4096).optional().describe("[SENSITIVE] The updated description of the AgentCore Memory resource."),
     eventExpiryDuration: z.number().int().optional().describe("The number of days after which memory events will expire, between 7 and 365 days."),
     memoryExecutionRoleArn: z.string().regex(new RegExp("^arn:[a-z0-9-\\.]{1,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[^/].{0,1023}$")).optional().describe("The ARN of the IAM role that provides permissions for the AgentCore Memory resource."),
     memoryStrategies: z.object({ addMemoryStrategies: z.array(z.union([z.object({ semanticMemoryStrategy: z.object({ name: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")), description: z.string().min(1).max(4096).optional(), namespaces: z.array(z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$"))).optional() }) }), z.object({ summaryMemoryStrategy: z.object({ name: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")), description: z.string().min(1).max(4096).optional(), namespaces: z.array(z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$"))).optional() }) }), z.object({ userPreferenceMemoryStrategy: z.object({ name: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")), description: z.string().min(1).max(4096).optional(), namespaces: z.array(z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$"))).optional() }) }), z.object({ customMemoryStrategy: z.object({ name: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")), description: z.string().min(1).max(4096).optional(), namespaces: z.array(z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$"))).optional(), configuration: z.union([z.object({ semanticOverride: z.object({ extraction: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }).optional(), consolidation: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }).optional() }) }), z.object({ summaryOverride: z.object({ consolidation: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }).optional() }) }), z.object({ userPreferenceOverride: z.object({ extraction: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }).optional(), consolidation: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }).optional() }) }), z.object({ episodicOverride: z.object({ extraction: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }).optional(), consolidation: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }).optional(), reflection: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string(), namespaces: z.array(z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$"))).optional() }).optional() }) }), z.object({ selfManagedConfiguration: z.object({ triggerConditions: z.array(z.union([z.object({ messageBasedTrigger: z.unknown() }), z.object({ tokenBasedTrigger: z.unknown() }), z.object({ timeBasedTrigger: z.unknown() })])).optional(), invocationConfiguration: z.object({ topicArn: z.string().regex(new RegExp("^arn:[a-z0-9-\\.]{1,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[^/].{0,1023}$")), payloadDeliveryBucketName: z.string() }), historicalContextWindowSize: z.number().int().optional() }) })]).optional() }) }), z.object({ episodicMemoryStrategy: z.object({ name: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")), description: z.string().min(1).max(4096).optional(), namespaces: z.array(z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$"))).optional(), reflectionConfiguration: z.object({ namespaces: z.array(z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$"))) }).optional() }) })])).optional(), modifyMemoryStrategies: z.array(z.object({ memoryStrategyId: z.string(), description: z.string().min(1).max(4096).optional(), namespaces: z.array(z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$"))).optional(), configuration: z.object({ extraction: z.union([z.object({ customExtractionConfiguration: z.union([z.object({ semanticExtractionOverride: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }) }), z.object({ userPreferenceExtractionOverride: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }) }), z.object({ episodicExtractionOverride: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }) })]) })]).optional(), consolidation: z.union([z.object({ customConsolidationConfiguration: z.union([z.object({ semanticConsolidationOverride: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }) }), z.object({ summaryConsolidationOverride: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }) }), z.object({ userPreferenceConsolidationOverride: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }) }), z.object({ episodicConsolidationOverride: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string() }) })]) })]).optional(), reflection: z.union([z.object({ episodicReflectionConfiguration: z.object({ namespaces: z.array(z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$"))) }) }), z.object({ customReflectionConfiguration: z.union([z.object({ episodicReflectionOverride: z.object({ appendToPrompt: z.string().min(1).max(30000), modelId: z.string(), namespaces: z.array(z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9\\-_\\/]*(\\{(actorId|sessionId|memoryStrategyId)\\}[a-zA-Z0-9\\-_\\/]*)*$"))).optional() }) })]) })]).optional(), selfManagedConfiguration: z.object({ triggerConditions: z.array(z.union([z.object({ messageBasedTrigger: z.object({ messageCount: z.number().int().optional() }) }), z.object({ tokenBasedTrigger: z.object({ tokenCount: z.number().int().optional() }) }), z.object({ timeBasedTrigger: z.object({ idleSessionTimeout: z.number().int().optional() }) })])).optional(), invocationConfiguration: z.object({ topicArn: z.string().regex(new RegExp("^arn:[a-z0-9-\\.]{1,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[a-z0-9-\\.]{0,63}:[^/].{0,1023}$")).optional(), payloadDeliveryBucketName: z.string().optional() }).optional(), historicalContextWindowSize: z.number().int().optional() }).optional() }).optional() })).optional(), deleteMemoryStrategies: z.array(z.object({ memoryStrategyId: z.string() })).optional() }).optional().describe("The memory strategies to add, modify, or delete."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               memoryId: String(params.memoryId),
             };
       const body = {
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "description": params.description,
               "eventExpiryDuration": params.eventExpiryDuration,
               "memoryExecutionRoleArn": params.memoryExecutionRoleArn,
@@ -1886,19 +2002,22 @@ server.registerTool(
 server.registerTool(
   "delete-memory",
   {
-    description: "Deletes an Amazon Bedrock AgentCore Memory resource.",
+    description: "Deletes an Amazon Bedrock AgentCore Memory resource. [idempotent]",
     inputSchema: z.object({
-    clientToken: z.string().min(1).optional().describe("A client token is used for keeping track of idempotent requests. It can contain a session id which can be around 250 chars, combined with a unique AWS identifier."),
+    clientToken: z.string().min(1).optional().describe("[Auto-generated UUID if not provided] A client token is used for keeping track of idempotent requests. It can contain a session id which can be around 250 chars, combined with a unique AWS identifier."),
     memoryId: z.string().min(12).regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the memory to delete."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               memoryId: String(params.memoryId),
             };
-      const queryParams = {
-              "clientToken": params.clientToken !== undefined ? String(params.clientToken) : undefined,
+      const queryParams: Record<string, string | undefined> = {
+              "clientToken": clientTokenValue !== undefined ? String(clientTokenValue) : undefined,
             };
       const result = await callApi("DELETE", "/memories/{memoryId}/delete", undefined, pathParams, queryParams);
       return {
@@ -1918,13 +2037,15 @@ server.registerTool(
 server.registerTool(
   "list-memories",
   {
-    description: "Lists the available Amazon Bedrock AgentCore Memory resources in the current Amazon Web Services Region. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: memories]",
+    description: "Lists the available Amazon Bedrock AgentCore Memory resources in the current Amazon Web Services Region. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: memories]",
     inputSchema: z.object({
     maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 10. The maximum value is 50."),
     nextToken: z.string().optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "maxResults": params.maxResults,
@@ -1948,12 +2069,14 @@ server.registerTool(
 server.registerTool(
   "get-oauth2-credential-provider",
   {
-    description: "Retrieves information about an OAuth2 credential provider.",
+    description: "Retrieves information about an OAuth2 credential provider. [read-only]",
     inputSchema: z.object({
     name: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\-_]+$")).describe("The name of the OAuth2 credential provider to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "name": params.name,
@@ -1984,6 +2107,8 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "name": params.name,
@@ -2008,12 +2133,14 @@ server.registerTool(
 server.registerTool(
   "delete-oauth2-credential-provider",
   {
-    description: "Deletes an OAuth2 credential provider.",
+    description: "Deletes an OAuth2 credential provider. [idempotent]",
     inputSchema: z.object({
     name: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\-_]+$")).describe("The name of the OAuth2 credential provider to delete."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "name": params.name,
@@ -2036,13 +2163,15 @@ server.registerTool(
 server.registerTool(
   "list-oauth2-credential-providers",
   {
-    description: "Lists all OAuth2 credential providers in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: credentialProviders]",
+    description: "Lists all OAuth2 credential providers in your account. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: credentialProviders]",
     inputSchema: z.object({
     nextToken: z.string().optional().describe("Pagination token."),
     maxResults: z.number().int().optional().describe("Maximum number of results to return."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "nextToken": params.nextToken,
@@ -2068,9 +2197,9 @@ server.registerTool(
   {
     description: "Creates an online evaluation configuration for continuous monitoring of agent performance. Online evaluation automatically samples live traffic from CloudWatch logs at specified rates and applies evaluators to assess agent quality in production.",
     inputSchema: z.object({
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
     onlineEvaluationConfigName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the online evaluation configuration. Must be unique within your account."),
-    description: z.string().min(1).max(200).regex(new RegExp("^.+$")).optional().describe("The description of the online evaluation configuration that explains its monitoring purpose and scope."),
+    description: z.string().min(1).max(200).regex(new RegExp("^.+$")).optional().describe("[SENSITIVE] The description of the online evaluation configuration that explains its monitoring purpose and scope."),
     rule: z.object({ samplingConfig: z.object({ samplingPercentage: z.number().min(0.01).max(100) }), filters: z.array(z.object({ key: z.string(), operator: z.enum(["Equals", "NotEquals", "GreaterThan", "LessThan", "GreaterThanOrEqual", "LessThanOrEqual", "Contains", "NotContains"]), value: z.union([z.object({ stringValue: z.string() }), z.object({ doubleValue: z.number() }), z.object({ booleanValue: z.boolean() })]) })).optional(), sessionConfig: z.object({ sessionTimeoutMinutes: z.number().int() }).optional() }).describe("The evaluation rule that defines sampling configuration, filters, and session detection settings for the online evaluation."),
     dataSourceConfig: z.union([z.object({ cloudWatchLogs: z.object({ logGroupNames: z.array(z.string().min(1).max(512).regex(new RegExp("^[.\\-_/#A-Za-z0-9]+$"))), serviceNames: z.array(z.string().min(1).max(256).regex(new RegExp("^[a-zA-Z0-9._-]+$"))) }) })]).describe("The data source configuration that specifies CloudWatch log groups and service names to monitor for agent traces."),
     evaluators: z.array(z.union([z.object({ evaluatorId: z.string().regex(new RegExp("^(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})$")) })])).describe("The list of evaluators to apply during online evaluation. Can include both built-in evaluators and custom evaluators created with CreateEvaluator."),
@@ -2080,9 +2209,12 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const body = {
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "onlineEvaluationConfigName": params.onlineEvaluationConfigName,
               "description": params.description,
               "rule": params.rule,
@@ -2110,12 +2242,14 @@ server.registerTool(
 server.registerTool(
   "get-online-evaluation-config",
   {
-    description: "Retrieves detailed information about an online evaluation configuration, including its rules, data sources, evaluators, and execution status.",
+    description: "Retrieves detailed information about an online evaluation configuration, including its rules, data sources, evaluators, and execution status. [read-only]",
     inputSchema: z.object({
     onlineEvaluationConfigId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the online evaluation configuration to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               onlineEvaluationConfigId: String(params.onlineEvaluationConfigId),
@@ -2138,11 +2272,11 @@ server.registerTool(
 server.registerTool(
   "update-online-evaluation-config",
   {
-    description: "Updates an online evaluation configuration's settings, including rules, data sources, evaluators, and execution status. Changes take effect immediately for ongoing evaluations.",
+    description: "Updates an online evaluation configuration's settings, including rules, data sources, evaluators, and execution status. Changes take effect immediately for ongoing evaluations. [idempotent]",
     inputSchema: z.object({
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
     onlineEvaluationConfigId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the online evaluation configuration to update."),
-    description: z.string().min(1).max(200).regex(new RegExp("^.+$")).optional().describe("The updated description of the online evaluation configuration."),
+    description: z.string().min(1).max(200).regex(new RegExp("^.+$")).optional().describe("[SENSITIVE] The updated description of the online evaluation configuration."),
     rule: z.object({ samplingConfig: z.object({ samplingPercentage: z.number().min(0.01).max(100) }), filters: z.array(z.object({ key: z.string(), operator: z.enum(["Equals", "NotEquals", "GreaterThan", "LessThan", "GreaterThanOrEqual", "LessThanOrEqual", "Contains", "NotContains"]), value: z.union([z.object({ stringValue: z.string() }), z.object({ doubleValue: z.number() }), z.object({ booleanValue: z.boolean() })]) })).optional(), sessionConfig: z.object({ sessionTimeoutMinutes: z.number().int() }).optional() }).optional().describe("The updated evaluation rule containing sampling configuration, filters, and session settings."),
     dataSourceConfig: z.union([z.object({ cloudWatchLogs: z.object({ logGroupNames: z.array(z.string().min(1).max(512).regex(new RegExp("^[.\\-_/#A-Za-z0-9]+$"))), serviceNames: z.array(z.string().min(1).max(256).regex(new RegExp("^[a-zA-Z0-9._-]+$"))) }) })]).optional().describe("The updated data source configuration specifying CloudWatch log groups and service names to monitor."),
     evaluators: z.array(z.union([z.object({ evaluatorId: z.string().regex(new RegExp("^(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})$")) })])).optional().describe("The updated list of evaluators to apply during online evaluation."),
@@ -2151,12 +2285,15 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               onlineEvaluationConfigId: String(params.onlineEvaluationConfigId),
             };
       const body = {
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
               "description": params.description,
               "rule": params.rule,
               "dataSourceConfig": params.dataSourceConfig,
@@ -2182,12 +2319,14 @@ server.registerTool(
 server.registerTool(
   "delete-online-evaluation-config",
   {
-    description: "Deletes an online evaluation configuration and stops any ongoing evaluation processes associated with it.",
+    description: "Deletes an online evaluation configuration and stops any ongoing evaluation processes associated with it. [idempotent]",
     inputSchema: z.object({
     onlineEvaluationConfigId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the online evaluation configuration to delete."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               onlineEvaluationConfigId: String(params.onlineEvaluationConfigId),
@@ -2210,15 +2349,17 @@ server.registerTool(
 server.registerTool(
   "list-online-evaluation-configs",
   {
-    description: "Lists all online evaluation configurations in the account, providing summary information about each configuration's status and settings. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: onlineEvaluationConfigs]",
+    description: "Lists all online evaluation configurations in the account, providing summary information about each configuration's status and settings. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: onlineEvaluationConfigs]",
     inputSchema: z.object({
     nextToken: z.string().optional().describe("The pagination token from a previous request to retrieve the next page of results."),
     maxResults: z.number().int().optional().describe("The maximum number of online evaluation configurations to return in a single response."),
   }),
   },
   async (params) => {
+    
+    
     try {
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
             };
@@ -2243,16 +2384,19 @@ server.registerTool(
     description: "Creates a new policy engine within the AgentCore Policy system. A policy engine is a collection of policies that evaluates and authorizes agent tool calls. When associated with Gateways (each Gateway can be associated with at most one policy engine, but multiple Gateways can be associated with the same engine), the policy engine intercepts all agent requests and determines whether to allow or deny each action based on the defined policies. This is an asynchronous operation. Use the GetPolicyEngine operation to poll the status field to track completion.",
     inputSchema: z.object({
     name: z.string().min(1).max(48).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*$")).describe("The customer-assigned immutable name for the policy engine. This name identifies the policy engine and cannot be changed after creation."),
-    description: z.string().min(1).max(4096).optional().describe("A human-readable description of the policy engine's purpose and scope (1-4,096 characters). This helps administrators understand the policy engine's role in the overall governance strategy. Document which Gateway this engine will be associated with, what types of tools or workflows it governs, and the team or service responsible for maintaining it. Clear descriptions are essential when managing multiple policy engines across different services or environments."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. If you retry a request with the same client token, the service returns the same response without creating a duplicate policy engine."),
+    description: z.string().min(1).max(4096).optional().describe("[SENSITIVE] A human-readable description of the policy engine's purpose and scope (1-4,096 characters). This helps administrators understand the policy engine's role in the overall governance strategy. Document which Gateway this engine will be associated with, what types of tools or workflows it governs, and the team or service responsible for maintaining it. Clear descriptions are essential when managing multiple policy engines across different services or environments."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. If you retry a request with the same client token, the service returns the same response without creating a duplicate policy engine."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const body = {
               "name": params.name,
               "description": params.description,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
             };
       const result = await callApi("POST", "/policy-engines", body, undefined, undefined);
       return {
@@ -2272,12 +2416,14 @@ server.registerTool(
 server.registerTool(
   "get-policy-engine",
   {
-    description: "Retrieves detailed information about a specific policy engine within the AgentCore Policy system. This operation returns the complete policy engine configuration, metadata, and current status, allowing administrators to review and manage policy engine settings.",
+    description: "Retrieves detailed information about a specific policy engine within the AgentCore Policy system. This operation returns the complete policy engine configuration, metadata, and current status, allowing administrators to review and manage policy engine settings. [read-only]",
     inputSchema: z.object({
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy engine to be retrieved. This must be a valid policy engine ID that exists within the account."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               policyEngineId: String(params.policyEngineId),
@@ -2447,13 +2593,15 @@ server.registerTool(
 server.registerTool(
   "update-policy-engine",
   {
-    description: "Updates an existing policy engine within the AgentCore Policy system. This operation allows modification of the policy engine description while maintaining its identity. This is an asynchronous operation. Use the GetPolicyEngine operation to poll the status field to track completion.",
+    description: "Updates an existing policy engine within the AgentCore Policy system. This operation allows modification of the policy engine description while maintaining its identity. This is an asynchronous operation. Use the GetPolicyEngine operation to poll the status field to track completion. [idempotent]",
     inputSchema: z.object({
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy engine to be updated."),
-    description: z.string().min(1).max(4096).optional().describe("The new description for the policy engine."),
+    description: z.string().min(1).max(4096).optional().describe("[SENSITIVE] The new description for the policy engine."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               policyEngineId: String(params.policyEngineId),
@@ -2479,12 +2627,14 @@ server.registerTool(
 server.registerTool(
   "delete-policy-engine",
   {
-    description: "Deletes an existing policy engine from the AgentCore Policy system. The policy engine must not have any associated policies before deletion. Once deleted, the policy engine and all its configurations become unavailable for policy management and evaluation. This is an asynchronous operation. Use the GetPolicyEngine operation to poll the status field to track completion.",
+    description: "Deletes an existing policy engine from the AgentCore Policy system. The policy engine must not have any associated policies before deletion. Once deleted, the policy engine and all its configurations become unavailable for policy management and evaluation. This is an asynchronous operation. Use the GetPolicyEngine operation to poll the status field to track completion. [idempotent]",
     inputSchema: z.object({
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy engine to be deleted. This must be a valid policy engine ID that exists within the account."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               policyEngineId: String(params.policyEngineId),
@@ -2507,15 +2657,17 @@ server.registerTool(
 server.registerTool(
   "list-policy-engines",
   {
-    description: "Retrieves a list of policy engines within the AgentCore Policy system. This operation supports pagination to help administrators discover and manage policy engines across their account. Each policy engine serves as a container for related policies. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policyEngines]",
+    description: "Retrieves a list of policy engines within the AgentCore Policy system. This operation supports pagination to help administrators discover and manage policy engines across their account. Each policy engine serves as a container for related policies. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policyEngines]",
     inputSchema: z.object({
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A pagination token returned from a previous ListPolicyEngines call. Use this token to retrieve the next page of results when the response is paginated."),
     maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of policy engines to return in a single response. If not specified, the default is 10 policy engines per page, with a maximum of 100 per page."),
   }),
   },
   async (params) => {
+    
+    
     try {
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
             };
@@ -2543,11 +2695,14 @@ server.registerTool(
     resource: z.union([z.object({ arn: z.string().min(20).max(1011) })]).describe("The resource information that provides context for policy generation. This helps the AI understand the target resources and generate appropriate access control rules."),
     content: z.union([z.object({ rawText: z.string().min(1).max(2000) })]).describe("The natural language description of the desired policy behavior. This content is processed by AI to generate corresponding Cedar policy statements that match the described intent."),
     name: z.string().min(1).max(48).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*$")).describe("A customer-assigned name for the policy generation request. This helps track and identify generation operations, especially when running multiple generations simultaneously."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure the idempotency of the request. The AWS SDK automatically generates this token, so you don't need to provide it in most cases. If you retry a request with the same client token, the service returns the same response without starting a duplicate generation."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure the idempotency of the request. The AWS SDK automatically generates this token, so you don't need to provide it in most cases. If you retry a request with the same client token, the service returns the same response without starting a duplicate generation."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               policyEngineId: String(params.policyEngineId),
             };
@@ -2555,7 +2710,7 @@ server.registerTool(
               "resource": params.resource,
               "content": params.content,
               "name": params.name,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
             };
       const result = await callApi("POST", "/policy-engines/{policyEngineId}/policy-generations", body, pathParams, undefined);
       return {
@@ -2575,13 +2730,15 @@ server.registerTool(
 server.registerTool(
   "get-policy-generation",
   {
-    description: "Retrieves information about a policy generation request within the AgentCore Policy system. Policy generation converts natural language descriptions into Cedar policy statements using AI-powered translation, enabling non-technical users to create policies.",
+    description: "Retrieves information about a policy generation request within the AgentCore Policy system. Policy generation converts natural language descriptions into Cedar policy statements using AI-powered translation, enabling non-technical users to create policies. [read-only]",
     inputSchema: z.object({
     policyGenerationId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy generation request to be retrieved. This must be a valid generation ID from a previous StartPolicyGeneration call."),
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The identifier of the policy engine associated with the policy generation request. This provides the context for the generation operation and schema validation."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               policyGenerationId: String(params.policyGenerationId),
@@ -2681,7 +2838,7 @@ server.registerTool(
 server.registerTool(
   "list-policy-generations",
   {
-    description: "Retrieves a list of policy generation requests within the AgentCore Policy system. This operation supports pagination and filtering to help track and manage AI-powered policy generation operations. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policyGenerations]",
+    description: "Retrieves a list of policy generation requests within the AgentCore Policy system. This operation supports pagination and filtering to help track and manage AI-powered policy generation operations. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policyGenerations]",
     inputSchema: z.object({
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A pagination token for retrieving additional policy generations when results are paginated."),
     maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of policy generations to return in a single response."),
@@ -2689,11 +2846,13 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               policyEngineId: String(params.policyEngineId),
             };
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
             };
@@ -2715,7 +2874,7 @@ server.registerTool(
 server.registerTool(
   "list-policy-generation-assets",
   {
-    description: "Retrieves a list of generated policy assets from a policy generation request within the AgentCore Policy system. This operation returns the actual Cedar policies and related artifacts produced by the AI-powered policy generation process, allowing users to review and select from multiple generated policy options. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policyGenerationAssets]",
+    description: "Retrieves a list of generated policy assets from a policy generation request within the AgentCore Policy system. This operation returns the actual Cedar policies and related artifacts produced by the AI-powered policy generation process, allowing users to review and select from multiple generated policy options. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policyGenerationAssets]",
     inputSchema: z.object({
     policyGenerationId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy generation request whose assets are to be retrieved. This must be a valid generation ID from a previous StartPolicyGeneration call that has completed processing."),
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy engine associated with the policy generation request. This provides the context for the generation operation and ensures assets are retrieved from the correct policy engine."),
@@ -2724,12 +2883,14 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               policyGenerationId: String(params.policyGenerationId),
               policyEngineId: String(params.policyEngineId),
             };
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
             };
@@ -2755,14 +2916,17 @@ server.registerTool(
     inputSchema: z.object({
     name: z.string().min(1).max(48).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*$")).describe("The customer-assigned immutable name for the policy. Must be unique within the account. This name is used for policy identification and cannot be changed after creation."),
     definition: z.union([z.object({ cedar: z.object({ statement: z.string().min(35).max(153600) }) })]).describe("The Cedar policy statement that defines the access control rules. This contains the actual policy logic written in Cedar policy language, specifying effect (permit or forbid), principals, actions, resources, and conditions for agent behavior control."),
-    description: z.string().min(1).max(4096).optional().describe("A human-readable description of the policy's purpose and functionality (1-4,096 characters). This helps policy administrators understand the policy's intent, business rules, and operational scope. Use this field to document why the policy exists, what business requirement it addresses, and any special considerations for maintenance. Clear descriptions are essential for policy governance, auditing, and troubleshooting."),
+    description: z.string().min(1).max(4096).optional().describe("[SENSITIVE] A human-readable description of the policy's purpose and functionality (1-4,096 characters). This helps policy administrators understand the policy's intent, business rules, and operational scope. Use this field to document why the policy exists, what business requirement it addresses, and any special considerations for maintenance. Clear descriptions are essential for policy governance, auditing, and troubleshooting."),
     validationMode: z.enum(["FAIL_ON_ANY_FINDINGS", "IGNORE_ALL_FINDINGS"]).optional().describe("The validation mode for the policy creation. Determines how Cedar analyzer validation results are handled during policy creation. FAIL_ON_ANY_FINDINGS (default) runs the Cedar analyzer to validate the policy against the Cedar schema and tool context, failing creation if the analyzer detects any validation issues to ensure strict conformance. IGNORE_ALL_FINDINGS runs the Cedar analyzer but allows policy creation even if validation issues are detected, useful for testing or when the policy schema is evolving. Use FAIL_ON_ANY_FINDINGS for production policies to ensure correctness, and IGNORE_ALL_FINDINGS only when you understand and accept the analyzer findings."),
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The identifier of the policy engine which contains this policy. Policy engines group related policies and provide the execution context for policy evaluation."),
-    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure the idempotency of the request. The AWS SDK automatically generates this token, so you don't need to provide it in most cases. If you retry a request with the same client token, the service returns the same response without creating a duplicate policy."),
+    clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("[Auto-generated UUID if not provided] A unique, case-sensitive identifier to ensure the idempotency of the request. The AWS SDK automatically generates this token, so you don't need to provide it in most cases. If you retry a request with the same client token, the service returns the same response without creating a duplicate policy."),
   }),
   },
   async (params) => {
+    
+    
     try {
+      const clientTokenValue = params.clientToken ?? crypto.randomUUID();
       const pathParams = {
               policyEngineId: String(params.policyEngineId),
             };
@@ -2771,7 +2935,7 @@ server.registerTool(
               "definition": params.definition,
               "description": params.description,
               "validationMode": params.validationMode,
-              "clientToken": params.clientToken,
+              "clientToken": clientTokenValue,
             };
       const result = await callApi("POST", "/policy-engines/{policyEngineId}/policies", body, pathParams, undefined);
       return {
@@ -2791,13 +2955,15 @@ server.registerTool(
 server.registerTool(
   "get-policy",
   {
-    description: "Retrieves detailed information about a specific policy within the AgentCore Policy system. This operation returns the complete policy definition, metadata, and current status, allowing administrators to review and manage policy configurations.",
+    description: "Retrieves detailed information about a specific policy within the AgentCore Policy system. This operation returns the complete policy definition, metadata, and current status, allowing administrators to review and manage policy configurations. [read-only]",
     inputSchema: z.object({
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The identifier of the policy engine that manages the policy to be retrieved."),
     policyId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy to be retrieved. This must be a valid policy ID that exists within the specified policy engine."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               policyEngineId: String(params.policyEngineId),
@@ -2972,16 +3138,18 @@ server.registerTool(
 server.registerTool(
   "update-policy",
   {
-    description: "Updates an existing policy within the AgentCore Policy system. This operation allows modification of the policy description and definition while maintaining the policy's identity. The updated policy is validated against the Cedar schema before being applied. This is an asynchronous operation. Use the GetPolicy operation to poll the status field to track completion.",
+    description: "Updates an existing policy within the AgentCore Policy system. This operation allows modification of the policy description and definition while maintaining the policy's identity. The updated policy is validated against the Cedar schema before being applied. This is an asynchronous operation. Use the GetPolicy operation to poll the status field to track completion. [idempotent]",
     inputSchema: z.object({
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The identifier of the policy engine that manages the policy to be updated. This ensures the policy is updated within the correct policy engine context."),
     policyId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy to be updated. This must be a valid policy ID that exists within the specified policy engine."),
-    description: z.string().min(1).max(4096).optional().describe("The new human-readable description for the policy. This optional field allows updating the policy's documentation while keeping the same policy logic."),
+    description: z.string().min(1).max(4096).optional().describe("[SENSITIVE] The new human-readable description for the policy. This optional field allows updating the policy's documentation while keeping the same policy logic."),
     definition: z.union([z.object({ cedar: z.object({ statement: z.string().min(35).max(153600) }) })]).describe("The new Cedar policy statement that defines the access control rules. This replaces the existing policy definition with new logic while maintaining the policy's identity."),
     validationMode: z.enum(["FAIL_ON_ANY_FINDINGS", "IGNORE_ALL_FINDINGS"]).optional().describe("The validation mode for the policy update. Determines how Cedar analyzer validation results are handled during policy updates. FAIL_ON_ANY_FINDINGS runs the Cedar analyzer and fails the update if validation issues are detected, ensuring the policy conforms to the Cedar schema and tool context. IGNORE_ALL_FINDINGS runs the Cedar analyzer but allows updates despite validation warnings. Use FAIL_ON_ANY_FINDINGS to ensure policy correctness during updates, especially when modifying policy logic or conditions."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               policyEngineId: String(params.policyEngineId),
@@ -3010,13 +3178,15 @@ server.registerTool(
 server.registerTool(
   "delete-policy",
   {
-    description: "Deletes an existing policy from the AgentCore Policy system. Once deleted, the policy can no longer be used for agent behavior control and all references to it become invalid. This is an asynchronous operation. Use the GetPolicy operation to poll the status field to track completion.",
+    description: "Deletes an existing policy from the AgentCore Policy system. Once deleted, the policy can no longer be used for agent behavior control and all references to it become invalid. This is an asynchronous operation. Use the GetPolicy operation to poll the status field to track completion. [idempotent]",
     inputSchema: z.object({
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The identifier of the policy engine that manages the policy to be deleted. This ensures the policy is deleted from the correct policy engine context."),
     policyId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy to be deleted. This must be a valid policy ID that exists within the specified policy engine."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               policyEngineId: String(params.policyEngineId),
@@ -3040,7 +3210,7 @@ server.registerTool(
 server.registerTool(
   "list-policies",
   {
-    description: "Retrieves a list of policies within the AgentCore Policy engine. This operation supports pagination and filtering to help administrators manage and discover policies across policy engines. Results can be filtered by policy engine or resource associations. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policies]",
+    description: "Retrieves a list of policies within the AgentCore Policy engine. This operation supports pagination and filtering to help administrators manage and discover policies across policy engines. Results can be filtered by policy engine or resource associations. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policies]",
     inputSchema: z.object({
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A pagination token returned from a previous ListPolicies call. Use this token to retrieve the next page of results when the response is paginated."),
     maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of policies to return in a single response. If not specified, the default is 10 policies per page, with a maximum of 100 per page."),
@@ -3049,11 +3219,13 @@ server.registerTool(
   }),
   },
   async (params) => {
+    
+    
     try {
       const pathParams = {
               policyEngineId: String(params.policyEngineId),
             };
-      const queryParams = {
+      const queryParams: Record<string, string | undefined> = {
               "nextToken": params.nextToken !== undefined ? String(params.nextToken) : undefined,
               "maxResults": params.maxResults !== undefined ? String(params.maxResults) : undefined,
               "targetResourceScope": params.targetResourceScope !== undefined ? String(params.targetResourceScope) : undefined,
@@ -3076,12 +3248,14 @@ server.registerTool(
 server.registerTool(
   "get-workload-identity",
   {
-    description: "Retrieves information about a workload identity.",
+    description: "Retrieves information about a workload identity. [read-only]",
     inputSchema: z.object({
     name: z.string().min(3).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")).describe("The name of the workload identity to retrieve."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "name": params.name,
@@ -3104,13 +3278,15 @@ server.registerTool(
 server.registerTool(
   "update-workload-identity",
   {
-    description: "Updates an existing workload identity.",
+    description: "Updates an existing workload identity. [idempotent]",
     inputSchema: z.object({
     name: z.string().min(3).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")).describe("The name of the workload identity to update."),
     allowedResourceOauth2ReturnUrls: z.array(z.string().min(1).max(2048).regex(new RegExp("^\\w+:(\\/?\\/?)[^\\s]+$"))).optional().describe("The new list of allowed OAuth2 return URLs for resources associated with this workload identity. This list replaces the existing list."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "name": params.name,
@@ -3134,12 +3310,14 @@ server.registerTool(
 server.registerTool(
   "delete-workload-identity",
   {
-    description: "Deletes a workload identity.",
+    description: "Deletes a workload identity. [idempotent]",
     inputSchema: z.object({
     name: z.string().min(3).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")).describe("The name of the workload identity to delete."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "name": params.name,
@@ -3162,13 +3340,15 @@ server.registerTool(
 server.registerTool(
   "list-workload-identities",
   {
-    description: "Lists all workload identities in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: workloadIdentities]",
+    description: "Lists all workload identities in your account. [read-only] [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: workloadIdentities]",
     inputSchema: z.object({
     nextToken: z.string().optional().describe("Pagination token."),
     maxResults: z.number().int().optional().describe("Maximum number of results to return."),
   }),
   },
   async (params) => {
+    
+    
     try {
       const body = {
               "nextToken": params.nextToken,

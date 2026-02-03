@@ -128,9 +128,11 @@ server.registerTool(
 | `@http` | HTTP method and URI template |
 | `@httpLabel` | Path parameters |
 | `@httpQuery` | Query string parameters |
+| `@httpQueryParams` | Sparse map spread to query params |
 | `@httpHeader` | Request headers |
 | `@httpPrefixHeaders` | Header prefix mapping |
 | `@httpPayload` | Request body payload |
+| `@httpChecksum` | Checksum requirements (shown in tool description) |
 | `@length` | String min/max length validation |
 | `@pattern` | String regex validation |
 | `@range` | Number min/max validation |
@@ -139,6 +141,19 @@ server.registerTool(
 | `@paginated` | Pagination config (shown in tool description) |
 | `@waitable` | Generates `wait-for-*` polling tools |
 | `@enumValue` | Enum wire values |
+| `@sensitive` | Mark sensitive fields (shown in field description) |
+| `@deprecated` | Deprecation warnings in tool/field description |
+| `@idempotencyToken` | Auto-generate UUID if not provided |
+| `@streaming` | Streaming bodies (noted in field description) |
+| `@hostLabel` | Host label fields (parsed) |
+| `@mediaType` | Content type hints in field description |
+| `@examples` | Usage examples (shown in tool description) |
+| `@externalDocumentation` | External doc links in tool description |
+| `@tags` | Resource tags (shown in tool description) |
+| `@unstable` | Unstable API marker |
+| `@internal` | Internal API marker |
+| `@idempotent` | Idempotent operation marker |
+| `@readonly` | Read-only operation marker |
 | `aws.api#service` | AWS endpoint prefix detection |
 | `aws.auth#sigv4` | AWS SigV4 signing detection |
 | `aws.protocols#restJson1` | Protocol detection |
@@ -150,28 +165,16 @@ The following Smithy features are not yet parsed:
 ### Traits
 | Trait | Purpose |
 |-------|---------|
-| `@sensitive` | Mark sensitive data (could redact in logs) |
-| `@deprecated` | Deprecation warnings |
-| `@idempotencyToken` | Auto-generate UUID tokens |
-| `@streaming` | Streaming request/response bodies |
-| `@httpQueryParams` | Sparse map to query params |
 | `@httpResponseCode` | Response code binding |
-| `@hostLabel` | Custom endpoint hostnames |
-| `@httpChecksum` | Checksum requirements |
 | `@xmlName`, `@xmlAttribute`, `@xmlNamespace` | XML formatting |
-| `@mediaType` | Content type hints |
 | `@eventPayload`, `@eventHeader` | Event streams |
-| `@retryable` | Retry hints |
-| `@examples` | Usage examples |
-| `@externalDocumentation` | External doc links |
-| `@tags` | Resource tagging |
-| `@unstable`, `@internal` | Stability markers |
+| `@retryable` | Retry hints (parsed but not used in generated code) |
 
 ### Features
 - Mixins (shape composition)
 - Apply statements (external trait application)
 - Auto-pagination (currently just shows pagination fields in description)
-- Streaming bodies
+- Streaming bodies (currently just shown as marker in description)
 - Event streams
 
 ## Pre-generated examples
