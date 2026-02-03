@@ -2,7 +2,7 @@
 /**
  * MCP Server generated from Smithy model
  * Service: AmazonBedrockAgentCore
- * Generated at: 2026-02-03T02:41:45.709Z
+ * Generated at: 2026-02-03T03:03:55.410Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -51,11 +51,15 @@ async function callApi<T>(
     }
   }
 
-  // Build URL with query parameters
+  // Build URL
   const url = new URL(resolvedPath, CONFIG.baseUrl);
+
+  // Build query object for signing (must be separate from path for SigV4)
+  const query: Record<string, string> = {};
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined && value !== null) {
+        query[key] = value;
         url.searchParams.set(key, value);
       }
     }
@@ -69,7 +73,8 @@ async function callApi<T>(
     protocol: url.protocol,
     hostname: url.hostname,
     port: url.port ? parseInt(url.port) : undefined,
-    path: url.pathname + url.search,
+    path: url.pathname,
+    query: Object.keys(query).length > 0 ? query : undefined,
     headers: {
       "Content-Type": "application/json",
       "Accept": "application/json",
@@ -115,8 +120,8 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              userIdentifier: params.userIdentifier,
-              sessionUri: params.sessionUri,
+              "userIdentifier": params.userIdentifier,
+              "sessionUri": params.sessionUri,
             };
       const result = await callApi("POST", "/identities/CompleteResourceTokenAuth", body, undefined, undefined);
       return {
@@ -145,8 +150,8 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              workloadIdentityToken: params.workloadIdentityToken,
-              resourceCredentialProviderName: params.resourceCredentialProviderName,
+              "workloadIdentityToken": params.workloadIdentityToken,
+              "resourceCredentialProviderName": params.resourceCredentialProviderName,
             };
       const result = await callApi("POST", "/identities/api-key", body, undefined, undefined);
       return {
@@ -182,15 +187,15 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              workloadIdentityToken: params.workloadIdentityToken,
-              resourceCredentialProviderName: params.resourceCredentialProviderName,
-              scopes: params.scopes,
-              oauth2Flow: params.oauth2Flow,
-              sessionUri: params.sessionUri,
-              resourceOauth2ReturnUrl: params.resourceOauth2ReturnUrl,
-              forceAuthentication: params.forceAuthentication,
-              customParameters: params.customParameters,
-              customState: params.customState,
+              "workloadIdentityToken": params.workloadIdentityToken,
+              "resourceCredentialProviderName": params.resourceCredentialProviderName,
+              "scopes": params.scopes,
+              "oauth2Flow": params.oauth2Flow,
+              "sessionUri": params.sessionUri,
+              "resourceOauth2ReturnUrl": params.resourceOauth2ReturnUrl,
+              "forceAuthentication": params.forceAuthentication,
+              "customParameters": params.customParameters,
+              "customState": params.customState,
             };
       const result = await callApi("POST", "/identities/oauth2/token", body, undefined, undefined);
       return {
@@ -218,7 +223,7 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              workloadName: params.workloadName,
+              "workloadName": params.workloadName,
             };
       const result = await callApi("POST", "/identities/GetWorkloadAccessToken", body, undefined, undefined);
       return {
@@ -247,8 +252,8 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              workloadName: params.workloadName,
-              userToken: params.userToken,
+              "workloadName": params.workloadName,
+              "userToken": params.userToken,
             };
       const result = await callApi("POST", "/identities/GetWorkloadAccessTokenForJWT", body, undefined, undefined);
       return {
@@ -277,8 +282,8 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              workloadName: params.workloadName,
-              userId: params.userId,
+              "workloadName": params.workloadName,
+              "userId": params.userId,
             };
       const result = await callApi("POST", "/identities/GetWorkloadAccessTokenForUserId", body, undefined, undefined);
       return {
@@ -314,8 +319,8 @@ server.registerTool(
               codeInterpreterIdentifier: String(params.codeInterpreterIdentifier),
             };
       const body = {
-              name: params.name,
-              arguments: params.arguments,
+              "name": params.name,
+              "arguments": params.arguments,
             };
       const result = await callApi("POST", "/code-interpreters/{codeInterpreterIdentifier}/tools/invoke", body, pathParams, undefined);
       return {
@@ -430,7 +435,7 @@ server.registerTool(
               "qualifier": params.qualifier !== undefined ? String(params.qualifier) : undefined,
             };
       const body = {
-              clientToken: params.clientToken,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("POST", "/runtimes/{agentRuntimeArn}/stopruntimesession", body, pathParams, queryParams);
       return {
@@ -485,7 +490,7 @@ server.registerTool(
     description: "Retrieves a list of browser sessions in Amazon Bedrock that match the specified criteria. This operation returns summary information about each session, including identifiers, status, and timestamps. You can filter the results by browser identifier and session status. The operation supports pagination to handle large result sets efficiently. We recommend using pagination to ensure that the operation returns quickly and successfully when retrieving large numbers of sessions. The following operations are related to ListBrowserSessions: StartBrowserSession GetBrowserSession",
     inputSchema: z.object({
     browserIdentifier: z.string().describe("The unique identifier of the browser to list sessions for. If specified, only sessions for this browser are returned. If not specified, sessions for all browsers are returned."),
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 10. Valid values range from 1 to 100. To retrieve the remaining results, make another call with the returned nextToken value."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in a single call. The default value is 10. Valid values range from 1 to 100. To retrieve the remaining results, make another call with the returned nextToken value."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results. If not specified, Amazon Bedrock returns the first page of results."),
     status: z.enum(["READY", "TERMINATED"]).optional().describe("The status of the browser sessions to list. Valid values include ACTIVE, STOPPING, and STOPPED. If not specified, sessions with any status are returned."),
   }),
@@ -496,9 +501,9 @@ server.registerTool(
               browserIdentifier: String(params.browserIdentifier),
             };
       const body = {
-              maxResults: params.maxResults,
-              nextToken: params.nextToken,
-              status: params.status,
+              "maxResults": params.maxResults,
+              "nextToken": params.nextToken,
+              "status": params.status,
             };
       const result = await callApi("POST", "/browsers/{browserIdentifier}/sessions/list", body, pathParams, undefined);
       return {
@@ -524,8 +529,8 @@ server.registerTool(
     traceParent: z.string().optional().describe("The parent trace information for distributed tracing."),
     browserIdentifier: z.string().describe("The unique identifier of the browser to use for this session. This identifier specifies which browser environment to initialize for the session."),
     name: z.string().min(1).max(100).optional().describe("The name of the browser session. This name helps you identify and manage the session. The name does not need to be unique."),
-    sessionTimeoutSeconds: z.number().int().optional().describe("The time in seconds after which the session automatically terminates if there is no activity. The default value is 3600 seconds (1 hour). The minimum allowed value is 60 seconds, and the maximum allowed value is 28800 seconds (8 hours)."),
-    viewPort: z.object({ width: z.number().int(), height: z.number().int() }).optional().describe("The dimensions of the browser viewport for this session. This determines the visible area of the web content and affects how web pages are rendered. If not specified, Amazon Bedrock uses a default viewport size."),
+    sessionTimeoutSeconds: z.number().int().min(1).max(28800).optional().describe("The time in seconds after which the session automatically terminates if there is no activity. The default value is 3600 seconds (1 hour). The minimum allowed value is 60 seconds, and the maximum allowed value is 28800 seconds (8 hours)."),
+    viewPort: z.object({ width: z.number().int().min(320).max(3840), height: z.number().int().min(240).max(2160) }).optional().describe("The dimensions of the browser viewport for this session. This determines the visible area of the web content and affects how web pages are rendered. If not specified, Amazon Bedrock uses a default viewport size."),
     extensions: z.array(z.object({ location: z.union([z.object({ s3: z.object({ bucket: z.string(), prefix: z.string(), versionId: z.string().optional() }) })]) })).optional().describe("A list of browser extensions to load into the browser session."),
     clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request, but does not return an error. This parameter helps prevent the creation of duplicate sessions if there are temporary network issues."),
   }),
@@ -536,11 +541,11 @@ server.registerTool(
               browserIdentifier: String(params.browserIdentifier),
             };
       const body = {
-              name: params.name,
-              sessionTimeoutSeconds: params.sessionTimeoutSeconds,
-              viewPort: params.viewPort,
-              extensions: params.extensions,
-              clientToken: params.clientToken,
+              "name": params.name,
+              "sessionTimeoutSeconds": params.sessionTimeoutSeconds,
+              "viewPort": params.viewPort,
+              "extensions": params.extensions,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("PUT", "/browsers/{browserIdentifier}/sessions/start", body, pathParams, undefined);
       return {
@@ -578,7 +583,7 @@ server.registerTool(
               "sessionId": params.sessionId !== undefined ? String(params.sessionId) : undefined,
             };
       const body = {
-              clientToken: params.clientToken,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("PUT", "/browsers/{browserIdentifier}/sessions/stop", body, pathParams, queryParams);
       return {
@@ -615,8 +620,8 @@ server.registerTool(
               "sessionId": params.sessionId !== undefined ? String(params.sessionId) : undefined,
             };
       const body = {
-              streamUpdate: params.streamUpdate,
-              clientToken: params.clientToken,
+              "streamUpdate": params.streamUpdate,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("PUT", "/browsers/{browserIdentifier}/sessions/streams/update", body, pathParams, queryParams);
       return {
@@ -671,7 +676,7 @@ server.registerTool(
     description: "Retrieves a list of code interpreter sessions in Amazon Bedrock that match the specified criteria. This operation returns summary information about each session, including identifiers, status, and timestamps. You can filter the results by code interpreter identifier and session status. The operation supports pagination to handle large result sets efficiently. We recommend using pagination to ensure that the operation returns quickly and successfully when retrieving large numbers of sessions. The following operations are related to ListCodeInterpreterSessions: StartCodeInterpreterSession GetCodeInterpreterSession",
     inputSchema: z.object({
     codeInterpreterIdentifier: z.string().describe("The unique identifier of the code interpreter to list sessions for. If specified, only sessions for this code interpreter are returned. If not specified, sessions for all code interpreters are returned."),
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 10. Valid values range from 1 to 100. To retrieve the remaining results, make another call with the returned nextToken value."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in a single call. The default value is 10. Valid values range from 1 to 100. To retrieve the remaining results, make another call with the returned nextToken value."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results. If not specified, Amazon Bedrock returns the first page of results."),
     status: z.enum(["READY", "TERMINATED"]).optional().describe("The status of the code interpreter sessions to list. Valid values include ACTIVE, STOPPING, and STOPPED. If not specified, sessions with any status are returned."),
   }),
@@ -682,9 +687,9 @@ server.registerTool(
               codeInterpreterIdentifier: String(params.codeInterpreterIdentifier),
             };
       const body = {
-              maxResults: params.maxResults,
-              nextToken: params.nextToken,
-              status: params.status,
+              "maxResults": params.maxResults,
+              "nextToken": params.nextToken,
+              "status": params.status,
             };
       const result = await callApi("POST", "/code-interpreters/{codeInterpreterIdentifier}/sessions/list", body, pathParams, undefined);
       return {
@@ -710,7 +715,7 @@ server.registerTool(
     traceParent: z.string().optional().describe("The parent trace information for distributed tracing."),
     codeInterpreterIdentifier: z.string().describe("The unique identifier of the code interpreter to use for this session. This identifier specifies which code interpreter environment to initialize for the session."),
     name: z.string().min(1).max(100).optional().describe("The name of the code interpreter session. This name helps you identify and manage the session. The name does not need to be unique."),
-    sessionTimeoutSeconds: z.number().int().optional().describe("The time in seconds after which the session automatically terminates if there is no activity. The default value is 900 seconds (15 minutes). The minimum allowed value is 60 seconds, and the maximum allowed value is 28800 seconds (8 hours)."),
+    sessionTimeoutSeconds: z.number().int().min(1).max(28800).optional().describe("The time in seconds after which the session automatically terminates if there is no activity. The default value is 900 seconds (15 minutes). The minimum allowed value is 60 seconds, and the maximum allowed value is 28800 seconds (8 hours)."),
     clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, Amazon Bedrock ignores the request, but does not return an error. This parameter helps prevent the creation of duplicate sessions if there are temporary network issues."),
   }),
   },
@@ -720,9 +725,9 @@ server.registerTool(
               codeInterpreterIdentifier: String(params.codeInterpreterIdentifier),
             };
       const body = {
-              name: params.name,
-              sessionTimeoutSeconds: params.sessionTimeoutSeconds,
-              clientToken: params.clientToken,
+              "name": params.name,
+              "sessionTimeoutSeconds": params.sessionTimeoutSeconds,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("PUT", "/code-interpreters/{codeInterpreterIdentifier}/sessions/start", body, pathParams, undefined);
       return {
@@ -760,7 +765,7 @@ server.registerTool(
               "sessionId": params.sessionId !== undefined ? String(params.sessionId) : undefined,
             };
       const body = {
-              clientToken: params.clientToken,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("PUT", "/code-interpreters/{codeInterpreterIdentifier}/sessions/stop", body, pathParams, queryParams);
       return {
@@ -793,8 +798,8 @@ server.registerTool(
               evaluatorId: String(params.evaluatorId),
             };
       const body = {
-              evaluationInput: params.evaluationInput,
-              evaluationTarget: params.evaluationTarget,
+              "evaluationInput": params.evaluationInput,
+              "evaluationTarget": params.evaluationTarget,
             };
       const result = await callApi("POST", "/evaluations/evaluate/{evaluatorId}", body, pathParams, undefined);
       return {
@@ -827,8 +832,8 @@ server.registerTool(
               memoryId: String(params.memoryId),
             };
       const body = {
-              records: params.records,
-              clientToken: params.clientToken,
+              "records": params.records,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("POST", "/memories/{memoryId}/memoryRecords/batchCreate", body, pathParams, undefined);
       return {
@@ -860,7 +865,7 @@ server.registerTool(
               memoryId: String(params.memoryId),
             };
       const body = {
-              records: params.records,
+              "records": params.records,
             };
       const result = await callApi("POST", "/memories/{memoryId}/memoryRecords/batchDelete", body, pathParams, undefined);
       return {
@@ -892,7 +897,7 @@ server.registerTool(
               memoryId: String(params.memoryId),
             };
       const body = {
-              records: params.records,
+              "records": params.records,
             };
       const result = await callApi("POST", "/memories/{memoryId}/memoryRecords/batchUpdate", body, pathParams, undefined);
       return {
@@ -930,13 +935,13 @@ server.registerTool(
               memoryId: String(params.memoryId),
             };
       const body = {
-              actorId: params.actorId,
-              sessionId: params.sessionId,
-              eventTimestamp: params.eventTimestamp,
-              payload: params.payload,
-              branch: params.branch,
-              clientToken: params.clientToken,
-              metadata: params.metadata,
+              "actorId": params.actorId,
+              "sessionId": params.sessionId,
+              "eventTimestamp": params.eventTimestamp,
+              "payload": params.payload,
+              "branch": params.branch,
+              "clientToken": params.clientToken,
+              "metadata": params.metadata,
             };
       const result = await callApi("POST", "/memories/{memoryId}/events", body, pathParams, undefined);
       return {
@@ -1084,10 +1089,10 @@ server.registerTool(
 server.registerTool(
   "list-actors",
   {
-    description: "Lists all actors in an AgentCore Memory resource. We recommend using pagination to ensure that the operation returns quickly and successfully. To use this operation, you must have the bedrock-agentcore:ListActors permission.",
+    description: "Lists all actors in an AgentCore Memory resource. We recommend using pagination to ensure that the operation returns quickly and successfully. To use this operation, you must have the bedrock-agentcore:ListActors permission. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: actorSummaries]",
     inputSchema: z.object({
     memoryId: z.string().min(12).regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The identifier of the AgentCore Memory resource for which to list actors."),
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 20."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in a single call. The default value is 20."),
     nextToken: z.string().optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results."),
   }),
   },
@@ -1097,8 +1102,8 @@ server.registerTool(
               memoryId: String(params.memoryId),
             };
       const body = {
-              maxResults: params.maxResults,
-              nextToken: params.nextToken,
+              "maxResults": params.maxResults,
+              "nextToken": params.nextToken,
             };
       const result = await callApi("POST", "/memories/{memoryId}/actors", body, pathParams, undefined);
       return {
@@ -1118,14 +1123,14 @@ server.registerTool(
 server.registerTool(
   "list-events",
   {
-    description: "Lists events in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully. To use this operation, you must have the bedrock-agentcore:ListEvents permission.",
+    description: "Lists events in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully. To use this operation, you must have the bedrock-agentcore:ListEvents permission. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: events]",
     inputSchema: z.object({
     memoryId: z.string().min(12).regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The identifier of the AgentCore Memory resource for which to list events."),
     sessionId: z.string().min(1).max(100).regex(new RegExp("^[a-zA-Z0-9][a-zA-Z0-9-_]*$")).describe("The identifier of the session for which to list events."),
     actorId: z.string().min(1).max(255).regex(new RegExp("^[a-zA-Z0-9][a-zA-Z0-9-_/]*(?::[a-zA-Z0-9-_/]+)*[a-zA-Z0-9-_/]*$")).describe("The identifier of the actor for which to list events."),
     includePayloads: z.boolean().optional().describe("Specifies whether to include event payloads in the response. Set to true to include payloads, or false to exclude them."),
     filter: z.object({ branch: z.object({ name: z.string().min(1).max(100).regex(new RegExp("^[a-zA-Z0-9][a-zA-Z0-9-_]*$")), includeParentBranches: z.boolean().optional() }).optional(), eventMetadata: z.array(z.object({ left: z.union([z.object({ metadataKey: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$")) })]), operator: z.enum(["EQUALS_TO", "EXISTS", "NOT_EXISTS"]), right: z.union([z.object({ metadataValue: z.union([z.object({ stringValue: z.string() })]) })]).optional() })).optional() }).optional().describe("Filter criteria to apply when listing events."),
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 20."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in a single call. The default value is 20."),
     nextToken: z.string().optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results."),
   }),
   },
@@ -1137,10 +1142,10 @@ server.registerTool(
               actorId: String(params.actorId),
             };
       const body = {
-              includePayloads: params.includePayloads,
-              filter: params.filter,
-              maxResults: params.maxResults,
-              nextToken: params.nextToken,
+              "includePayloads": params.includePayloads,
+              "filter": params.filter,
+              "maxResults": params.maxResults,
+              "nextToken": params.nextToken,
             };
       const result = await callApi("POST", "/memories/{memoryId}/actor/{actorId}/sessions/{sessionId}", body, pathParams, undefined);
       return {
@@ -1160,7 +1165,7 @@ server.registerTool(
 server.registerTool(
   "list-memory-extraction-jobs",
   {
-    description: "Lists all long-term memory extraction jobs that are eligible to be started with optional filtering. To use this operation, you must have the bedrock-agentcore:ListMemoryExtractionJobs permission.",
+    description: "Lists all long-term memory extraction jobs that are eligible to be started with optional filtering. To use this operation, you must have the bedrock-agentcore:ListMemoryExtractionJobs permission. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: jobs]",
     inputSchema: z.object({
     memoryId: z.string().min(12).regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the memory to list extraction jobs for."),
     maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 20."),
@@ -1174,9 +1179,9 @@ server.registerTool(
               memoryId: String(params.memoryId),
             };
       const body = {
-              maxResults: params.maxResults,
-              filter: params.filter,
-              nextToken: params.nextToken,
+              "maxResults": params.maxResults,
+              "filter": params.filter,
+              "nextToken": params.nextToken,
             };
       const result = await callApi("POST", "/memories/{memoryId}/extractionJobs", body, pathParams, undefined);
       return {
@@ -1196,12 +1201,12 @@ server.registerTool(
 server.registerTool(
   "list-memory-records",
   {
-    description: "Lists memory records in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully. To use this operation, you must have the bedrock-agentcore:ListMemoryRecords permission.",
+    description: "Lists memory records in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully. To use this operation, you must have the bedrock-agentcore:ListMemoryRecords permission. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: memoryRecordSummaries]",
     inputSchema: z.object({
     memoryId: z.string().min(12).regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The identifier of the AgentCore Memory resource for which to list memory records."),
     namespace: z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9/*][a-zA-Z0-9-_/*]*(?::[a-zA-Z0-9-_/*]+)*[a-zA-Z0-9-_/*]*$")).describe("The namespace to filter memory records by. If specified, only memory records in this namespace are returned."),
     memoryStrategyId: z.string().min(1).max(100).regex(new RegExp("^[a-zA-Z0-9][a-zA-Z0-9-_]*$")).optional().describe("The memory strategy identifier to filter memory records by. If specified, only memory records with this strategy ID are returned."),
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 20."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in a single call. The default value is 20."),
     nextToken: z.string().optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results."),
   }),
   },
@@ -1211,10 +1216,10 @@ server.registerTool(
               memoryId: String(params.memoryId),
             };
       const body = {
-              namespace: params.namespace,
-              memoryStrategyId: params.memoryStrategyId,
-              maxResults: params.maxResults,
-              nextToken: params.nextToken,
+              "namespace": params.namespace,
+              "memoryStrategyId": params.memoryStrategyId,
+              "maxResults": params.maxResults,
+              "nextToken": params.nextToken,
             };
       const result = await callApi("POST", "/memories/{memoryId}/memoryRecords", body, pathParams, undefined);
       return {
@@ -1234,11 +1239,11 @@ server.registerTool(
 server.registerTool(
   "list-sessions",
   {
-    description: "Lists sessions in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully. To use this operation, you must have the bedrock-agentcore:ListSessions permission.",
+    description: "Lists sessions in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully. To use this operation, you must have the bedrock-agentcore:ListSessions permission. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: sessionSummaries]",
     inputSchema: z.object({
     memoryId: z.string().min(12).regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The identifier of the AgentCore Memory resource for which to list sessions."),
     actorId: z.string().min(1).max(255).regex(new RegExp("^[a-zA-Z0-9][a-zA-Z0-9-_/]*(?::[a-zA-Z0-9-_/]+)*[a-zA-Z0-9-_/]*$")).describe("The identifier of the actor for which to list sessions."),
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 20."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in a single call. The default value is 20."),
     nextToken: z.string().optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results."),
   }),
   },
@@ -1249,8 +1254,8 @@ server.registerTool(
               actorId: String(params.actorId),
             };
       const body = {
-              maxResults: params.maxResults,
-              nextToken: params.nextToken,
+              "maxResults": params.maxResults,
+              "nextToken": params.nextToken,
             };
       const result = await callApi("POST", "/memories/{memoryId}/actor/{actorId}/sessions", body, pathParams, undefined);
       return {
@@ -1270,13 +1275,13 @@ server.registerTool(
 server.registerTool(
   "retrieve-memory-records",
   {
-    description: "Searches for and retrieves memory records from an AgentCore Memory resource based on specified search criteria. We recommend using pagination to ensure that the operation returns quickly and successfully. To use this operation, you must have the bedrock-agentcore:RetrieveMemoryRecords permission.",
+    description: "Searches for and retrieves memory records from an AgentCore Memory resource based on specified search criteria. We recommend using pagination to ensure that the operation returns quickly and successfully. To use this operation, you must have the bedrock-agentcore:RetrieveMemoryRecords permission. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: memoryRecordSummaries]",
     inputSchema: z.object({
     memoryId: z.string().min(12).regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The identifier of the AgentCore Memory resource from which to retrieve memory records."),
     namespace: z.string().min(1).max(1024).regex(new RegExp("^[a-zA-Z0-9/*][a-zA-Z0-9-_/*]*(?::[a-zA-Z0-9-_/*]+)*[a-zA-Z0-9-_/*]*$")).describe("The namespace to filter memory records by."),
     searchCriteria: z.object({ searchQuery: z.string(), memoryStrategyId: z.string().min(1).max(100).regex(new RegExp("^[a-zA-Z0-9][a-zA-Z0-9-_]*$")).optional(), topK: z.number().int().optional(), metadataFilters: z.array(z.object({ left: z.union([z.object({ metadataKey: z.string().min(1).max(128).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$")) })]), operator: z.enum(["EQUALS_TO", "EXISTS", "NOT_EXISTS"]), right: z.union([z.object({ metadataValue: z.union([z.object({ stringValue: z.string() })]) })]).optional() })).optional() }).describe("The search criteria to use for finding relevant memory records. This includes the search query, memory strategy ID, and other search parameters."),
     nextToken: z.string().optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results."),
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 20."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in a single call. The default value is 20."),
   }),
   },
   async (params) => {
@@ -1285,10 +1290,10 @@ server.registerTool(
               memoryId: String(params.memoryId),
             };
       const body = {
-              namespace: params.namespace,
-              searchCriteria: params.searchCriteria,
-              nextToken: params.nextToken,
-              maxResults: params.maxResults,
+              "namespace": params.namespace,
+              "searchCriteria": params.searchCriteria,
+              "nextToken": params.nextToken,
+              "maxResults": params.maxResults,
             };
       const result = await callApi("POST", "/memories/{memoryId}/retrieve", body, pathParams, undefined);
       return {
@@ -1321,8 +1326,8 @@ server.registerTool(
               memoryId: String(params.memoryId),
             };
       const body = {
-              extractionJob: params.extractionJob,
-              clientToken: params.clientToken,
+              "extractionJob": params.extractionJob,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("POST", "/memories/{memoryId}/extractionJobs/start", body, pathParams, undefined);
       return {

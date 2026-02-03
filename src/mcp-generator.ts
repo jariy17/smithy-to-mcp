@@ -195,11 +195,15 @@ async function callApi<T>(
     }
   }
 
-  // Build URL with query parameters
+  // Build URL
   const url = new URL(resolvedPath, CONFIG.baseUrl);
+
+  // Build query object for signing (must be separate from path for SigV4)
+  const query: Record<string, string> = {};
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined && value !== null) {
+        query[key] = value;
         url.searchParams.set(key, value);
       }
     }
@@ -213,7 +217,8 @@ async function callApi<T>(
     protocol: url.protocol,
     hostname: url.hostname,
     port: url.port ? parseInt(url.port) : undefined,
-    path: url.pathname + url.search,
+    path: url.pathname,
+    query: Object.keys(query).length > 0 ? query : undefined,
     headers: {
       "Content-Type": "application/json",
       "Accept": "application/json",
@@ -260,7 +265,27 @@ async function callApi<T>(
   private generateTool(operation: ParsedOperation): string {
     const toolName = this.operationToToolName(operation.name);
     const rawDescription = operation.documentation || `Execute ${operation.name} operation`;
-    const description = this.stripHtml(rawDescription);
+    let description = this.stripHtml(rawDescription);
+
+    // Add pagination info to description if applicable
+    if (operation.pagination) {
+      const paginationParts: string[] = [];
+      if (operation.pagination.inputToken) {
+        paginationParts.push(`inputToken: ${operation.pagination.inputToken}`);
+      }
+      if (operation.pagination.outputToken) {
+        paginationParts.push(`outputToken: ${operation.pagination.outputToken}`);
+      }
+      if (operation.pagination.pageSize) {
+        paginationParts.push(`pageSize: ${operation.pagination.pageSize}`);
+      }
+      if (operation.pagination.items) {
+        paginationParts.push(`items: ${operation.pagination.items}`);
+      }
+      if (paginationParts.length > 0) {
+        description += ` [Paginated: ${paginationParts.join(", ")}]`;
+      }
+    }
 
     const zodSchema = this.generateZodSchema(operation);
     const apiCall = this.generateApiCall(operation);
@@ -363,7 +388,7 @@ server.registerTool(
       case "number":
         return this.numberToZod(schema);
       case "boolean":
-        return "z.boolean()";
+        return this.booleanToZod(schema);
       case "array":
         return `z.array(${this.jsonSchemaToZod(schema.items || {}, depth + 1)})`;
       case "object":
@@ -377,7 +402,11 @@ server.registerTool(
     let base = "z.string()";
 
     if (schema.enum) {
-      return `z.enum([${schema.enum.map((v) => JSON.stringify(v)).join(", ")}])`;
+      const enumBase = `z.enum([${schema.enum.map((v) => JSON.stringify(v)).join(", ")}])`;
+      if (schema.default !== undefined) {
+        return `${enumBase}.default(${JSON.stringify(schema.default)})`;
+      }
+      return enumBase;
     }
 
     const constraints: string[] = [];
@@ -393,6 +422,9 @@ server.registerTool(
     }
     if (schema.format === "date-time") {
       constraints.push(`.datetime()`);
+    }
+    if (schema.default !== undefined) {
+      constraints.push(`.default(${JSON.stringify(schema.default)})`);
     }
 
     return base + constraints.join("");
@@ -412,6 +444,9 @@ server.registerTool(
     if (schema.maximum !== undefined) {
       constraints.push(`.max(${schema.maximum})`);
     }
+    if (schema.default !== undefined) {
+      constraints.push(`.default(${schema.default})`);
+    }
 
     return base + constraints.join("");
   }
@@ -426,8 +461,18 @@ server.registerTool(
     if (schema.maximum !== undefined) {
       constraints.push(`.max(${schema.maximum})`);
     }
+    if (schema.default !== undefined) {
+      constraints.push(`.default(${schema.default})`);
+    }
 
     return base + constraints.join("");
+  }
+
+  private booleanToZod(schema: JsonSchema): string {
+    if (schema.default !== undefined) {
+      return `z.boolean().default(${schema.default})`;
+    }
+    return "z.boolean()";
   }
 
   private objectToZod(schema: JsonSchema, depth: number): string {
@@ -524,7 +569,9 @@ server.registerTool(
     } else if (bodyParams.length > 0 && (httpMethod === "POST" || httpMethod === "PUT" || httpMethod === "PATCH")) {
       lines.push(`const body = {`);
       for (const p of bodyParams) {
-        lines.push(`        ${p.name}: params.${p.name},`);
+        // Use jsonName for wire format if specified, otherwise use member name
+        const wireName = p.jsonName || p.name;
+        lines.push(`        "${wireName}": params.${p.name},`);
       }
       lines.push(`      };`);
       bodyArg = "body";

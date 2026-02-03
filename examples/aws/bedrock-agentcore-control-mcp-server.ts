@@ -2,7 +2,7 @@
 /**
  * MCP Server generated from Smithy model
  * Service: AmazonBedrockAgentCoreControl
- * Generated at: 2026-02-03T02:41:45.751Z
+ * Generated at: 2026-02-03T03:02:33.184Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -51,11 +51,15 @@ async function callApi<T>(
     }
   }
 
-  // Build URL with query parameters
+  // Build URL
   const url = new URL(resolvedPath, CONFIG.baseUrl);
+
+  // Build query object for signing (must be separate from path for SigV4)
+  const query: Record<string, string> = {};
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined && value !== null) {
+        query[key] = value;
         url.searchParams.set(key, value);
       }
     }
@@ -69,7 +73,8 @@ async function callApi<T>(
     protocol: url.protocol,
     hostname: url.hostname,
     port: url.port ? parseInt(url.port) : undefined,
-    path: url.pathname + url.search,
+    path: url.pathname,
+    query: Object.keys(query).length > 0 ? query : undefined,
     headers: {
       "Content-Type": "application/json",
       "Accept": "application/json",
@@ -170,7 +175,7 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              tokenVaultId: params.tokenVaultId,
+              "tokenVaultId": params.tokenVaultId,
             };
       const result = await callApi("POST", "/identities/get-token-vault", body, undefined, undefined);
       return {
@@ -230,7 +235,7 @@ server.registerTool(
               resourceArn: String(params.resourceArn),
             };
       const body = {
-              policy: params.policy,
+              "policy": params.policy,
             };
       const result = await callApi("PUT", "/resourcepolicy/{resourceArn}", body, pathParams, undefined);
       return {
@@ -259,8 +264,8 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              tokenVaultId: params.tokenVaultId,
-              kmsConfiguration: params.kmsConfiguration,
+              "tokenVaultId": params.tokenVaultId,
+              "kmsConfiguration": params.kmsConfiguration,
             };
       const result = await callApi("POST", "/identities/set-token-vault-cmk", body, undefined, undefined);
       return {
@@ -292,7 +297,7 @@ server.registerTool(
               resourceArn: String(params.resourceArn),
             };
       const body = {
-              tags: params.tags,
+              "tags": params.tags,
             };
       const result = await callApi("POST", "/tags/{resourceArn}", body, pathParams, undefined);
       return {
@@ -360,11 +365,11 @@ server.registerTool(
               agentRuntimeId: String(params.agentRuntimeId),
             };
       const body = {
-              name: params.name,
-              agentRuntimeVersion: params.agentRuntimeVersion,
-              description: params.description,
-              clientToken: params.clientToken,
-              tags: params.tags,
+              "name": params.name,
+              "agentRuntimeVersion": params.agentRuntimeVersion,
+              "description": params.description,
+              "clientToken": params.clientToken,
+              "tags": params.tags,
             };
       const result = await callApi("PUT", "/runtimes/{agentRuntimeId}/runtime-endpoints/", body, pathParams, undefined);
       return {
@@ -430,9 +435,9 @@ server.registerTool(
               endpointName: String(params.endpointName),
             };
       const body = {
-              agentRuntimeVersion: params.agentRuntimeVersion,
-              description: params.description,
-              clientToken: params.clientToken,
+              "agentRuntimeVersion": params.agentRuntimeVersion,
+              "description": params.description,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("PUT", "/runtimes/{agentRuntimeId}/runtime-endpoints/{endpointName}/", body, pathParams, undefined);
       return {
@@ -486,10 +491,10 @@ server.registerTool(
 server.registerTool(
   "list-agent-runtime-endpoints",
   {
-    description: "Lists all endpoints for a specific Amazon Secure Agent.",
+    description: "Lists all endpoints for a specific Amazon Secure Agent. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: runtimeEndpoints]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime to list endpoints for."),
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in the response."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in the response."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A token to retrieve the next page of results."),
   }),
   },
@@ -539,18 +544,18 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              agentRuntimeName: params.agentRuntimeName,
-              agentRuntimeArtifact: params.agentRuntimeArtifact,
-              roleArn: params.roleArn,
-              networkConfiguration: params.networkConfiguration,
-              clientToken: params.clientToken,
-              description: params.description,
-              authorizerConfiguration: params.authorizerConfiguration,
-              requestHeaderConfiguration: params.requestHeaderConfiguration,
-              protocolConfiguration: params.protocolConfiguration,
-              lifecycleConfiguration: params.lifecycleConfiguration,
-              environmentVariables: params.environmentVariables,
-              tags: params.tags,
+              "agentRuntimeName": params.agentRuntimeName,
+              "agentRuntimeArtifact": params.agentRuntimeArtifact,
+              "roleArn": params.roleArn,
+              "networkConfiguration": params.networkConfiguration,
+              "clientToken": params.clientToken,
+              "description": params.description,
+              "authorizerConfiguration": params.authorizerConfiguration,
+              "requestHeaderConfiguration": params.requestHeaderConfiguration,
+              "protocolConfiguration": params.protocolConfiguration,
+              "lifecycleConfiguration": params.lifecycleConfiguration,
+              "environmentVariables": params.environmentVariables,
+              "tags": params.tags,
             };
       const result = await callApi("PUT", "/runtimes/", body, undefined, undefined);
       return {
@@ -623,16 +628,16 @@ server.registerTool(
               agentRuntimeId: String(params.agentRuntimeId),
             };
       const body = {
-              agentRuntimeArtifact: params.agentRuntimeArtifact,
-              roleArn: params.roleArn,
-              networkConfiguration: params.networkConfiguration,
-              description: params.description,
-              authorizerConfiguration: params.authorizerConfiguration,
-              requestHeaderConfiguration: params.requestHeaderConfiguration,
-              protocolConfiguration: params.protocolConfiguration,
-              lifecycleConfiguration: params.lifecycleConfiguration,
-              environmentVariables: params.environmentVariables,
-              clientToken: params.clientToken,
+              "agentRuntimeArtifact": params.agentRuntimeArtifact,
+              "roleArn": params.roleArn,
+              "networkConfiguration": params.networkConfiguration,
+              "description": params.description,
+              "authorizerConfiguration": params.authorizerConfiguration,
+              "requestHeaderConfiguration": params.requestHeaderConfiguration,
+              "protocolConfiguration": params.protocolConfiguration,
+              "lifecycleConfiguration": params.lifecycleConfiguration,
+              "environmentVariables": params.environmentVariables,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("PUT", "/runtimes/{agentRuntimeId}/", body, pathParams, undefined);
       return {
@@ -684,9 +689,9 @@ server.registerTool(
 server.registerTool(
   "list-agent-runtimes",
   {
-    description: "Lists all Amazon Secure Agents in your account.",
+    description: "Lists all Amazon Secure Agents in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: agentRuntimes]",
     inputSchema: z.object({
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in the response."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in the response."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A token to retrieve the next page of results."),
   }),
   },
@@ -714,10 +719,10 @@ server.registerTool(
 server.registerTool(
   "list-agent-runtime-versions",
   {
-    description: "Lists all versions of a specific Amazon Secure Agent.",
+    description: "Lists all versions of a specific Amazon Secure Agent. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: agentRuntimes]",
     inputSchema: z.object({
     agentRuntimeId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the AgentCore Runtime to list versions for."),
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in the response."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in the response."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A token to retrieve the next page of results."),
   }),
   },
@@ -756,7 +761,7 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
+              "name": params.name,
             };
       const result = await callApi("POST", "/identities/GetApiKeyCredentialProvider", body, undefined, undefined);
       return {
@@ -785,8 +790,8 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
-              apiKey: params.apiKey,
+              "name": params.name,
+              "apiKey": params.apiKey,
             };
       const result = await callApi("POST", "/identities/UpdateApiKeyCredentialProvider", body, undefined, undefined);
       return {
@@ -814,7 +819,7 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
+              "name": params.name,
             };
       const result = await callApi("POST", "/identities/DeleteApiKeyCredentialProvider", body, undefined, undefined);
       return {
@@ -834,17 +839,17 @@ server.registerTool(
 server.registerTool(
   "list-api-key-credential-providers",
   {
-    description: "Lists all API key credential providers in your account.",
+    description: "Lists all API key credential providers in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: credentialProviders]",
     inputSchema: z.object({
     nextToken: z.string().optional().describe("Pagination token."),
-    maxResults: z.number().int().optional().describe("Maximum number of results to return."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("Maximum number of results to return."),
   }),
   },
   async (params) => {
     try {
       const body = {
-              nextToken: params.nextToken,
-              maxResults: params.maxResults,
+              "nextToken": params.nextToken,
+              "maxResults": params.maxResults,
             };
       const result = await callApi("POST", "/identities/ListApiKeyCredentialProviders", body, undefined, undefined);
       return {
@@ -879,14 +884,14 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
-              description: params.description,
-              executionRoleArn: params.executionRoleArn,
-              networkConfiguration: params.networkConfiguration,
-              recording: params.recording,
-              browserSigning: params.browserSigning,
-              clientToken: params.clientToken,
-              tags: params.tags,
+              "name": params.name,
+              "description": params.description,
+              "executionRoleArn": params.executionRoleArn,
+              "networkConfiguration": params.networkConfiguration,
+              "recording": params.recording,
+              "browserSigning": params.browserSigning,
+              "clientToken": params.clientToken,
+              "tags": params.tags,
             };
       const result = await callApi("PUT", "/browsers", body, undefined, undefined);
       return {
@@ -966,9 +971,9 @@ server.registerTool(
 server.registerTool(
   "list-browsers",
   {
-    description: "Lists all custom browsers in your account.",
+    description: "Lists all custom browsers in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: browserSummaries]",
     inputSchema: z.object({
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 10. The maximum value is 50."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in a single call. The default value is 10. The maximum value is 50."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results."),
     type: z.enum(["SYSTEM", "CUSTOM"]).optional().describe("The type of browsers to list. If not specified, all browser types are returned."),
   }),
@@ -1011,12 +1016,12 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
-              description: params.description,
-              executionRoleArn: params.executionRoleArn,
-              networkConfiguration: params.networkConfiguration,
-              clientToken: params.clientToken,
-              tags: params.tags,
+              "name": params.name,
+              "description": params.description,
+              "executionRoleArn": params.executionRoleArn,
+              "networkConfiguration": params.networkConfiguration,
+              "clientToken": params.clientToken,
+              "tags": params.tags,
             };
       const result = await callApi("PUT", "/code-interpreters", body, undefined, undefined);
       return {
@@ -1096,9 +1101,9 @@ server.registerTool(
 server.registerTool(
   "list-code-interpreters",
   {
-    description: "Lists all custom code interpreters in your account.",
+    description: "Lists all custom code interpreters in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: codeInterpreterSummaries]",
     inputSchema: z.object({
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in the response."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of results to return in the response."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A token to retrieve the next page of results."),
     type: z.enum(["SYSTEM", "CUSTOM"]).optional().describe("The type of code interpreters to list."),
   }),
@@ -1141,12 +1146,12 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              clientToken: params.clientToken,
-              evaluatorName: params.evaluatorName,
-              description: params.description,
-              evaluatorConfig: params.evaluatorConfig,
-              level: params.level,
-              tags: params.tags,
+              "clientToken": params.clientToken,
+              "evaluatorName": params.evaluatorName,
+              "description": params.description,
+              "evaluatorConfig": params.evaluatorConfig,
+              "level": params.level,
+              "tags": params.tags,
             };
       const result = await callApi("POST", "/evaluators/create", body, undefined, undefined);
       return {
@@ -1209,10 +1214,10 @@ server.registerTool(
               evaluatorId: String(params.evaluatorId),
             };
       const body = {
-              clientToken: params.clientToken,
-              description: params.description,
-              evaluatorConfig: params.evaluatorConfig,
-              level: params.level,
+              "clientToken": params.clientToken,
+              "description": params.description,
+              "evaluatorConfig": params.evaluatorConfig,
+              "level": params.level,
             };
       const result = await callApi("PUT", "/evaluators/{evaluatorId}", body, pathParams, undefined);
       return {
@@ -1260,7 +1265,7 @@ server.registerTool(
 server.registerTool(
   "list-evaluators",
   {
-    description: "Lists all available evaluators, including both builtin evaluators provided by the service and custom evaluators created by the user.",
+    description: "Lists all available evaluators, including both builtin evaluators provided by the service and custom evaluators created by the user. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: evaluators]",
     inputSchema: z.object({
     nextToken: z.string().optional().describe("The pagination token from a previous request to retrieve the next page of results."),
     maxResults: z.number().int().optional().describe("The maximum number of evaluators to return in a single response."),
@@ -1297,7 +1302,7 @@ server.registerTool(
     clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
     roleArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$")).describe("The Amazon Resource Name (ARN) of the IAM role that provides permissions for the gateway to access Amazon Web Services services."),
     protocolType: z.enum(["MCP"]).describe("The protocol type for the gateway."),
-    protocolConfiguration: z.union([z.object({ mcp: z.object({ supportedVersions: z.array(z.string()).optional(), instructions: z.string().min(1).max(2048).optional(), searchType: z.enum(["SEMANTIC"]).optional() }) })]).optional().describe("The configuration settings for the protocol specified in the protocolType parameter."),
+    protocolConfiguration: z.union([z.object({ mcp: z.object({ supportedVersions: z.array(z.string().default("2025-03-26")).optional(), instructions: z.string().min(1).max(2048).optional(), searchType: z.enum(["SEMANTIC"]).optional() }) })]).optional().describe("The configuration settings for the protocol specified in the protocolType parameter."),
     authorizerType: z.enum(["CUSTOM_JWT", "AWS_IAM", "NONE"]).describe("The type of authorizer to use for the gateway. CUSTOM_JWT - Authorize with a bearer token. AWS_IAM - Authorize with your Amazon Web Services IAM credentials. NONE - No authorization"),
     authorizerConfiguration: z.union([z.object({ customJWTAuthorizer: z.object({ discoveryUrl: z.string().regex(new RegExp("^.+/\\.well-known/openid-configuration$")), allowedAudience: z.array(z.string()).optional(), allowedClients: z.array(z.string()).optional(), allowedScopes: z.array(z.string().min(1).max(255).regex(new RegExp("^[\\x21\\x23-\\x5B\\x5D-\\x7E]+$"))).optional(), customClaims: z.array(z.object({ inboundTokenClaimName: z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-:]+$")), inboundTokenClaimValueType: z.enum(["STRING", "STRING_ARRAY"]), authorizingClaimMatchValue: z.object({ claimMatchValue: z.union([z.object({ matchValueString: z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")) }), z.object({ matchValueStringList: z.array(z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$"))) })]), claimMatchOperator: z.enum(["EQUALS", "CONTAINS", "CONTAINS_ANY"]) }) })).optional() }) })]).optional().describe("The authorizer configuration for the gateway. Required if authorizerType is CUSTOM_JWT."),
     kmsKeyArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$")).optional().describe("The Amazon Resource Name (ARN) of the KMS key used to encrypt data associated with the gateway."),
@@ -1310,19 +1315,19 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
-              description: params.description,
-              clientToken: params.clientToken,
-              roleArn: params.roleArn,
-              protocolType: params.protocolType,
-              protocolConfiguration: params.protocolConfiguration,
-              authorizerType: params.authorizerType,
-              authorizerConfiguration: params.authorizerConfiguration,
-              kmsKeyArn: params.kmsKeyArn,
-              interceptorConfigurations: params.interceptorConfigurations,
-              policyEngineConfiguration: params.policyEngineConfiguration,
-              exceptionLevel: params.exceptionLevel,
-              tags: params.tags,
+              "name": params.name,
+              "description": params.description,
+              "clientToken": params.clientToken,
+              "roleArn": params.roleArn,
+              "protocolType": params.protocolType,
+              "protocolConfiguration": params.protocolConfiguration,
+              "authorizerType": params.authorizerType,
+              "authorizerConfiguration": params.authorizerConfiguration,
+              "kmsKeyArn": params.kmsKeyArn,
+              "interceptorConfigurations": params.interceptorConfigurations,
+              "policyEngineConfiguration": params.policyEngineConfiguration,
+              "exceptionLevel": params.exceptionLevel,
+              "tags": params.tags,
             };
       const result = await callApi("POST", "/gateways/", body, undefined, undefined);
       return {
@@ -1398,9 +1403,9 @@ server.registerTool(
 server.registerTool(
   "list-gateways",
   {
-    description: "Lists all gateways in the account.",
+    description: "Lists all gateways in the account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: items]",
     inputSchema: z.object({
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in the response. If the total number of results is greater than this value, use the token returned in the response in the nextToken field when making another request to return the next batch of results."),
+    maxResults: z.number().int().min(1).max(1000).optional().describe("The maximum number of results to return in the response. If the total number of results is greater than this value, use the token returned in the response in the nextToken field when making another request to return the next batch of results."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("If the total number of results is greater than the maxResults value provided in the request, enter the token returned in the nextToken field in the response in this field to return the next batch of results."),
   }),
   },
@@ -1435,7 +1440,7 @@ server.registerTool(
     description: z.string().min(1).max(200).optional().describe("The updated description for the gateway."),
     roleArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$")).describe("The updated IAM role ARN that provides permissions for the gateway."),
     protocolType: z.enum(["MCP"]).describe("The updated protocol type for the gateway."),
-    protocolConfiguration: z.union([z.object({ mcp: z.object({ supportedVersions: z.array(z.string()).optional(), instructions: z.string().min(1).max(2048).optional(), searchType: z.enum(["SEMANTIC"]).optional() }) })]).optional(),
+    protocolConfiguration: z.union([z.object({ mcp: z.object({ supportedVersions: z.array(z.string().default("2025-03-26")).optional(), instructions: z.string().min(1).max(2048).optional(), searchType: z.enum(["SEMANTIC"]).optional() }) })]).optional(),
     authorizerType: z.enum(["CUSTOM_JWT", "AWS_IAM", "NONE"]).describe("The updated authorizer type for the gateway."),
     authorizerConfiguration: z.union([z.object({ customJWTAuthorizer: z.object({ discoveryUrl: z.string().regex(new RegExp("^.+/\\.well-known/openid-configuration$")), allowedAudience: z.array(z.string()).optional(), allowedClients: z.array(z.string()).optional(), allowedScopes: z.array(z.string().min(1).max(255).regex(new RegExp("^[\\x21\\x23-\\x5B\\x5D-\\x7E]+$"))).optional(), customClaims: z.array(z.object({ inboundTokenClaimName: z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-:]+$")), inboundTokenClaimValueType: z.enum(["STRING", "STRING_ARRAY"]), authorizingClaimMatchValue: z.object({ claimMatchValue: z.union([z.object({ matchValueString: z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")) }), z.object({ matchValueStringList: z.array(z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$"))) })]), claimMatchOperator: z.enum(["EQUALS", "CONTAINS", "CONTAINS_ANY"]) }) })).optional() }) })]).optional().describe("The updated authorizer configuration for the gateway."),
     kmsKeyArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$")).optional().describe("The updated ARN of the KMS key used to encrypt the gateway."),
@@ -1450,17 +1455,17 @@ server.registerTool(
               gatewayIdentifier: String(params.gatewayIdentifier),
             };
       const body = {
-              name: params.name,
-              description: params.description,
-              roleArn: params.roleArn,
-              protocolType: params.protocolType,
-              protocolConfiguration: params.protocolConfiguration,
-              authorizerType: params.authorizerType,
-              authorizerConfiguration: params.authorizerConfiguration,
-              kmsKeyArn: params.kmsKeyArn,
-              interceptorConfigurations: params.interceptorConfigurations,
-              policyEngineConfiguration: params.policyEngineConfiguration,
-              exceptionLevel: params.exceptionLevel,
+              "name": params.name,
+              "description": params.description,
+              "roleArn": params.roleArn,
+              "protocolType": params.protocolType,
+              "protocolConfiguration": params.protocolConfiguration,
+              "authorizerType": params.authorizerType,
+              "authorizerConfiguration": params.authorizerConfiguration,
+              "kmsKeyArn": params.kmsKeyArn,
+              "interceptorConfigurations": params.interceptorConfigurations,
+              "policyEngineConfiguration": params.policyEngineConfiguration,
+              "exceptionLevel": params.exceptionLevel,
             };
       const result = await callApi("PUT", "/gateways/{gatewayIdentifier}/", body, pathParams, undefined);
       return {
@@ -1497,12 +1502,12 @@ server.registerTool(
               gatewayIdentifier: String(params.gatewayIdentifier),
             };
       const body = {
-              name: params.name,
-              description: params.description,
-              clientToken: params.clientToken,
-              targetConfiguration: params.targetConfiguration,
-              credentialProviderConfigurations: params.credentialProviderConfigurations,
-              metadataConfiguration: params.metadataConfiguration,
+              "name": params.name,
+              "description": params.description,
+              "clientToken": params.clientToken,
+              "targetConfiguration": params.targetConfiguration,
+              "credentialProviderConfigurations": params.credentialProviderConfigurations,
+              "metadataConfiguration": params.metadataConfiguration,
             };
       const result = await callApi("POST", "/gateways/{gatewayIdentifier}/targets/", body, pathParams, undefined);
       return {
@@ -1582,10 +1587,10 @@ server.registerTool(
 server.registerTool(
   "list-gateway-targets",
   {
-    description: "Lists all targets for a specific gateway.",
+    description: "Lists all targets for a specific gateway. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: items]",
     inputSchema: z.object({
     gatewayIdentifier: z.string().regex(new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$")).describe("The identifier of the gateway to list targets for."),
-    maxResults: z.number().int().optional().describe("The maximum number of results to return in the response. If the total number of results is greater than this value, use the token returned in the response in the nextToken field when making another request to return the next batch of results."),
+    maxResults: z.number().int().min(1).max(1000).optional().describe("The maximum number of results to return in the response. If the total number of results is greater than this value, use the token returned in the response in the nextToken field when making another request to return the next batch of results."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("If the total number of results is greater than the maxResults value provided in the request, enter the token returned in the nextToken field in the response in this field to return the next batch of results."),
   }),
   },
@@ -1628,7 +1633,7 @@ server.registerTool(
               gatewayIdentifier: String(params.gatewayIdentifier),
             };
       const body = {
-              targetIdList: params.targetIdList,
+              "targetIdList": params.targetIdList,
             };
       const result = await callApi("PUT", "/gateways/{gatewayIdentifier}/synchronizeTargets", body, pathParams, undefined);
       return {
@@ -1666,11 +1671,11 @@ server.registerTool(
               targetId: String(params.targetId),
             };
       const body = {
-              name: params.name,
-              description: params.description,
-              targetConfiguration: params.targetConfiguration,
-              credentialProviderConfigurations: params.credentialProviderConfigurations,
-              metadataConfiguration: params.metadataConfiguration,
+              "name": params.name,
+              "description": params.description,
+              "targetConfiguration": params.targetConfiguration,
+              "credentialProviderConfigurations": params.credentialProviderConfigurations,
+              "metadataConfiguration": params.metadataConfiguration,
             };
       const result = await callApi("PUT", "/gateways/{gatewayIdentifier}/targets/{targetId}/", body, pathParams, undefined);
       return {
@@ -1705,14 +1710,14 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              clientToken: params.clientToken,
-              name: params.name,
-              description: params.description,
-              encryptionKeyArn: params.encryptionKeyArn,
-              memoryExecutionRoleArn: params.memoryExecutionRoleArn,
-              eventExpiryDuration: params.eventExpiryDuration,
-              memoryStrategies: params.memoryStrategies,
-              tags: params.tags,
+              "clientToken": params.clientToken,
+              "name": params.name,
+              "description": params.description,
+              "encryptionKeyArn": params.encryptionKeyArn,
+              "memoryExecutionRoleArn": params.memoryExecutionRoleArn,
+              "eventExpiryDuration": params.eventExpiryDuration,
+              "memoryStrategies": params.memoryStrategies,
+              "tags": params.tags,
             };
       const result = await callApi("POST", "/memories/create", body, undefined, undefined);
       return {
@@ -1780,11 +1785,11 @@ server.registerTool(
               memoryId: String(params.memoryId),
             };
       const body = {
-              clientToken: params.clientToken,
-              description: params.description,
-              eventExpiryDuration: params.eventExpiryDuration,
-              memoryExecutionRoleArn: params.memoryExecutionRoleArn,
-              memoryStrategies: params.memoryStrategies,
+              "clientToken": params.clientToken,
+              "description": params.description,
+              "eventExpiryDuration": params.eventExpiryDuration,
+              "memoryExecutionRoleArn": params.memoryExecutionRoleArn,
+              "memoryStrategies": params.memoryStrategies,
             };
       const result = await callApi("PUT", "/memories/{memoryId}/update", body, pathParams, undefined);
       return {
@@ -1836,7 +1841,7 @@ server.registerTool(
 server.registerTool(
   "list-memories",
   {
-    description: "Lists the available Amazon Bedrock AgentCore Memory resources in the current Amazon Web Services Region.",
+    description: "Lists the available Amazon Bedrock AgentCore Memory resources in the current Amazon Web Services Region. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: memories]",
     inputSchema: z.object({
     maxResults: z.number().int().optional().describe("The maximum number of results to return in a single call. The default value is 10. The maximum value is 50."),
     nextToken: z.string().optional().describe("The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results."),
@@ -1845,8 +1850,8 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              maxResults: params.maxResults,
-              nextToken: params.nextToken,
+              "maxResults": params.maxResults,
+              "nextToken": params.nextToken,
             };
       const result = await callApi("POST", "/memories/", body, undefined, undefined);
       return {
@@ -1874,7 +1879,7 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
+              "name": params.name,
             };
       const result = await callApi("POST", "/identities/GetOauth2CredentialProvider", body, undefined, undefined);
       return {
@@ -1904,9 +1909,9 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
-              credentialProviderVendor: params.credentialProviderVendor,
-              oauth2ProviderConfigInput: params.oauth2ProviderConfigInput,
+              "name": params.name,
+              "credentialProviderVendor": params.credentialProviderVendor,
+              "oauth2ProviderConfigInput": params.oauth2ProviderConfigInput,
             };
       const result = await callApi("POST", "/identities/UpdateOauth2CredentialProvider", body, undefined, undefined);
       return {
@@ -1934,7 +1939,7 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
+              "name": params.name,
             };
       const result = await callApi("POST", "/identities/DeleteOauth2CredentialProvider", body, undefined, undefined);
       return {
@@ -1954,7 +1959,7 @@ server.registerTool(
 server.registerTool(
   "list-oauth2-credential-providers",
   {
-    description: "Lists all OAuth2 credential providers in your account.",
+    description: "Lists all OAuth2 credential providers in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: credentialProviders]",
     inputSchema: z.object({
     nextToken: z.string().optional().describe("Pagination token."),
     maxResults: z.number().int().optional().describe("Maximum number of results to return."),
@@ -1963,8 +1968,8 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              nextToken: params.nextToken,
-              maxResults: params.maxResults,
+              "nextToken": params.nextToken,
+              "maxResults": params.maxResults,
             };
       const result = await callApi("POST", "/identities/ListOauth2CredentialProviders", body, undefined, undefined);
       return {
@@ -1989,7 +1994,7 @@ server.registerTool(
     clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
     onlineEvaluationConfigName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$")).describe("The name of the online evaluation configuration. Must be unique within your account."),
     description: z.string().min(1).max(200).regex(new RegExp("^.+$")).optional().describe("The description of the online evaluation configuration that explains its monitoring purpose and scope."),
-    rule: z.object({ samplingConfig: z.object({ samplingPercentage: z.number() }), filters: z.array(z.object({ key: z.string(), operator: z.enum(["Equals", "NotEquals", "GreaterThan", "LessThan", "GreaterThanOrEqual", "LessThanOrEqual", "Contains", "NotContains"]), value: z.union([z.object({ stringValue: z.string() }), z.object({ doubleValue: z.number() }), z.object({ booleanValue: z.boolean() })]) })).optional(), sessionConfig: z.object({ sessionTimeoutMinutes: z.number().int() }).optional() }).describe("The evaluation rule that defines sampling configuration, filters, and session detection settings for the online evaluation."),
+    rule: z.object({ samplingConfig: z.object({ samplingPercentage: z.number().min(0.01).max(100) }), filters: z.array(z.object({ key: z.string(), operator: z.enum(["Equals", "NotEquals", "GreaterThan", "LessThan", "GreaterThanOrEqual", "LessThanOrEqual", "Contains", "NotContains"]), value: z.union([z.object({ stringValue: z.string() }), z.object({ doubleValue: z.number() }), z.object({ booleanValue: z.boolean() })]) })).optional(), sessionConfig: z.object({ sessionTimeoutMinutes: z.number().int() }).optional() }).describe("The evaluation rule that defines sampling configuration, filters, and session detection settings for the online evaluation."),
     dataSourceConfig: z.union([z.object({ cloudWatchLogs: z.object({ logGroupNames: z.array(z.string().min(1).max(512).regex(new RegExp("^[.\\-_/#A-Za-z0-9]+$"))), serviceNames: z.array(z.string().min(1).max(256).regex(new RegExp("^[a-zA-Z0-9._-]+$"))) }) })]).describe("The data source configuration that specifies CloudWatch log groups and service names to monitor for agent traces."),
     evaluators: z.array(z.union([z.object({ evaluatorId: z.string().regex(new RegExp("^(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})$")) })])).describe("The list of evaluators to apply during online evaluation. Can include both built-in evaluators and custom evaluators created with CreateEvaluator."),
     evaluationExecutionRoleArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$")).describe("The Amazon Resource Name (ARN) of the IAM role that grants permissions to read from CloudWatch logs, write evaluation results, and invoke Amazon Bedrock models for evaluation."),
@@ -2000,15 +2005,15 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              clientToken: params.clientToken,
-              onlineEvaluationConfigName: params.onlineEvaluationConfigName,
-              description: params.description,
-              rule: params.rule,
-              dataSourceConfig: params.dataSourceConfig,
-              evaluators: params.evaluators,
-              evaluationExecutionRoleArn: params.evaluationExecutionRoleArn,
-              enableOnCreate: params.enableOnCreate,
-              tags: params.tags,
+              "clientToken": params.clientToken,
+              "onlineEvaluationConfigName": params.onlineEvaluationConfigName,
+              "description": params.description,
+              "rule": params.rule,
+              "dataSourceConfig": params.dataSourceConfig,
+              "evaluators": params.evaluators,
+              "evaluationExecutionRoleArn": params.evaluationExecutionRoleArn,
+              "enableOnCreate": params.enableOnCreate,
+              "tags": params.tags,
             };
       const result = await callApi("POST", "/online-evaluation-configs/create", body, undefined, undefined);
       return {
@@ -2061,7 +2066,7 @@ server.registerTool(
     clientToken: z.string().min(33).max(256).regex(new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}$")).optional().describe("A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If you don't specify this field, a value is randomly generated for you. If this token matches a previous request, the service ignores the request, but doesn't return an error. For more information, see Ensuring idempotency."),
     onlineEvaluationConfigId: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the online evaluation configuration to update."),
     description: z.string().min(1).max(200).regex(new RegExp("^.+$")).optional().describe("The updated description of the online evaluation configuration."),
-    rule: z.object({ samplingConfig: z.object({ samplingPercentage: z.number() }), filters: z.array(z.object({ key: z.string(), operator: z.enum(["Equals", "NotEquals", "GreaterThan", "LessThan", "GreaterThanOrEqual", "LessThanOrEqual", "Contains", "NotContains"]), value: z.union([z.object({ stringValue: z.string() }), z.object({ doubleValue: z.number() }), z.object({ booleanValue: z.boolean() })]) })).optional(), sessionConfig: z.object({ sessionTimeoutMinutes: z.number().int() }).optional() }).optional().describe("The updated evaluation rule containing sampling configuration, filters, and session settings."),
+    rule: z.object({ samplingConfig: z.object({ samplingPercentage: z.number().min(0.01).max(100) }), filters: z.array(z.object({ key: z.string(), operator: z.enum(["Equals", "NotEquals", "GreaterThan", "LessThan", "GreaterThanOrEqual", "LessThanOrEqual", "Contains", "NotContains"]), value: z.union([z.object({ stringValue: z.string() }), z.object({ doubleValue: z.number() }), z.object({ booleanValue: z.boolean() })]) })).optional(), sessionConfig: z.object({ sessionTimeoutMinutes: z.number().int() }).optional() }).optional().describe("The updated evaluation rule containing sampling configuration, filters, and session settings."),
     dataSourceConfig: z.union([z.object({ cloudWatchLogs: z.object({ logGroupNames: z.array(z.string().min(1).max(512).regex(new RegExp("^[.\\-_/#A-Za-z0-9]+$"))), serviceNames: z.array(z.string().min(1).max(256).regex(new RegExp("^[a-zA-Z0-9._-]+$"))) }) })]).optional().describe("The updated data source configuration specifying CloudWatch log groups and service names to monitor."),
     evaluators: z.array(z.union([z.object({ evaluatorId: z.string().regex(new RegExp("^(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})$")) })])).optional().describe("The updated list of evaluators to apply during online evaluation."),
     evaluationExecutionRoleArn: z.string().min(1).max(2048).regex(new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$")).optional().describe("The updated Amazon Resource Name (ARN) of the IAM role used for evaluation execution."),
@@ -2074,13 +2079,13 @@ server.registerTool(
               onlineEvaluationConfigId: String(params.onlineEvaluationConfigId),
             };
       const body = {
-              clientToken: params.clientToken,
-              description: params.description,
-              rule: params.rule,
-              dataSourceConfig: params.dataSourceConfig,
-              evaluators: params.evaluators,
-              evaluationExecutionRoleArn: params.evaluationExecutionRoleArn,
-              executionStatus: params.executionStatus,
+              "clientToken": params.clientToken,
+              "description": params.description,
+              "rule": params.rule,
+              "dataSourceConfig": params.dataSourceConfig,
+              "evaluators": params.evaluators,
+              "evaluationExecutionRoleArn": params.evaluationExecutionRoleArn,
+              "executionStatus": params.executionStatus,
             };
       const result = await callApi("PUT", "/online-evaluation-configs/{onlineEvaluationConfigId}", body, pathParams, undefined);
       return {
@@ -2128,7 +2133,7 @@ server.registerTool(
 server.registerTool(
   "list-online-evaluation-configs",
   {
-    description: "Lists all online evaluation configurations in the account, providing summary information about each configuration's status and settings.",
+    description: "Lists all online evaluation configurations in the account, providing summary information about each configuration's status and settings. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: onlineEvaluationConfigs]",
     inputSchema: z.object({
     nextToken: z.string().optional().describe("The pagination token from a previous request to retrieve the next page of results."),
     maxResults: z.number().int().optional().describe("The maximum number of online evaluation configurations to return in a single response."),
@@ -2168,9 +2173,9 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
-              description: params.description,
-              clientToken: params.clientToken,
+              "name": params.name,
+              "description": params.description,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("POST", "/policy-engines", body, undefined, undefined);
       return {
@@ -2230,7 +2235,7 @@ server.registerTool(
               policyEngineId: String(params.policyEngineId),
             };
       const body = {
-              description: params.description,
+              "description": params.description,
             };
       const result = await callApi("PUT", "/policy-engines/{policyEngineId}", body, pathParams, undefined);
       return {
@@ -2278,10 +2283,10 @@ server.registerTool(
 server.registerTool(
   "list-policy-engines",
   {
-    description: "Retrieves a list of policy engines within the AgentCore Policy system. This operation supports pagination to help administrators discover and manage policy engines across their account. Each policy engine serves as a container for related policies.",
+    description: "Retrieves a list of policy engines within the AgentCore Policy system. This operation supports pagination to help administrators discover and manage policy engines across their account. Each policy engine serves as a container for related policies. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policyEngines]",
     inputSchema: z.object({
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A pagination token returned from a previous ListPolicyEngines call. Use this token to retrieve the next page of results when the response is paginated."),
-    maxResults: z.number().int().optional().describe("The maximum number of policy engines to return in a single response. If not specified, the default is 10 policy engines per page, with a maximum of 100 per page."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of policy engines to return in a single response. If not specified, the default is 10 policy engines per page, with a maximum of 100 per page."),
   }),
   },
   async (params) => {
@@ -2323,10 +2328,10 @@ server.registerTool(
               policyEngineId: String(params.policyEngineId),
             };
       const body = {
-              resource: params.resource,
-              content: params.content,
-              name: params.name,
-              clientToken: params.clientToken,
+              "resource": params.resource,
+              "content": params.content,
+              "name": params.name,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("POST", "/policy-engines/{policyEngineId}/policy-generations", body, pathParams, undefined);
       return {
@@ -2376,10 +2381,10 @@ server.registerTool(
 server.registerTool(
   "list-policy-generations",
   {
-    description: "Retrieves a list of policy generation requests within the AgentCore Policy system. This operation supports pagination and filtering to help track and manage AI-powered policy generation operations.",
+    description: "Retrieves a list of policy generation requests within the AgentCore Policy system. This operation supports pagination and filtering to help track and manage AI-powered policy generation operations. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policyGenerations]",
     inputSchema: z.object({
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A pagination token for retrieving additional policy generations when results are paginated."),
-    maxResults: z.number().int().optional().describe("The maximum number of policy generations to return in a single response."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of policy generations to return in a single response."),
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The identifier of the policy engine whose policy generations to retrieve."),
   }),
   },
@@ -2410,12 +2415,12 @@ server.registerTool(
 server.registerTool(
   "list-policy-generation-assets",
   {
-    description: "Retrieves a list of generated policy assets from a policy generation request within the AgentCore Policy system. This operation returns the actual Cedar policies and related artifacts produced by the AI-powered policy generation process, allowing users to review and select from multiple generated policy options.",
+    description: "Retrieves a list of generated policy assets from a policy generation request within the AgentCore Policy system. This operation returns the actual Cedar policies and related artifacts produced by the AI-powered policy generation process, allowing users to review and select from multiple generated policy options. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policyGenerationAssets]",
     inputSchema: z.object({
     policyGenerationId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy generation request whose assets are to be retrieved. This must be a valid generation ID from a previous StartPolicyGeneration call that has completed processing."),
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy engine associated with the policy generation request. This provides the context for the generation operation and ensures assets are retrieved from the correct policy engine."),
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A pagination token returned from a previous ListPolicyGenerationAssets call. Use this token to retrieve the next page of assets when the response is paginated due to large numbers of generated policy options."),
-    maxResults: z.number().int().optional().describe("The maximum number of policy generation assets to return in a single response. If not specified, the default is 10 assets per page, with a maximum of 100 per page. This helps control response size when dealing with policy generations that produce many alternative policy options."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of policy generation assets to return in a single response. If not specified, the default is 10 assets per page, with a maximum of 100 per page. This helps control response size when dealing with policy generations that produce many alternative policy options."),
   }),
   },
   async (params) => {
@@ -2462,11 +2467,11 @@ server.registerTool(
               policyEngineId: String(params.policyEngineId),
             };
       const body = {
-              name: params.name,
-              definition: params.definition,
-              description: params.description,
-              validationMode: params.validationMode,
-              clientToken: params.clientToken,
+              "name": params.name,
+              "definition": params.definition,
+              "description": params.description,
+              "validationMode": params.validationMode,
+              "clientToken": params.clientToken,
             };
       const result = await callApi("POST", "/policy-engines/{policyEngineId}/policies", body, pathParams, undefined);
       return {
@@ -2532,9 +2537,9 @@ server.registerTool(
               policyId: String(params.policyId),
             };
       const body = {
-              description: params.description,
-              definition: params.definition,
-              validationMode: params.validationMode,
+              "description": params.description,
+              "definition": params.definition,
+              "validationMode": params.validationMode,
             };
       const result = await callApi("PUT", "/policy-engines/{policyEngineId}/policies/{policyId}", body, pathParams, undefined);
       return {
@@ -2584,10 +2589,10 @@ server.registerTool(
 server.registerTool(
   "list-policies",
   {
-    description: "Retrieves a list of policies within the AgentCore Policy engine. This operation supports pagination and filtering to help administrators manage and discover policies across policy engines. Results can be filtered by policy engine or resource associations.",
+    description: "Retrieves a list of policies within the AgentCore Policy engine. This operation supports pagination and filtering to help administrators manage and discover policies across policy engines. Results can be filtered by policy engine or resource associations. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: policies]",
     inputSchema: z.object({
     nextToken: z.string().min(1).max(2048).regex(new RegExp("^\\S*$")).optional().describe("A pagination token returned from a previous ListPolicies call. Use this token to retrieve the next page of results when the response is paginated."),
-    maxResults: z.number().int().optional().describe("The maximum number of policies to return in a single response. If not specified, the default is 10 policies per page, with a maximum of 100 per page."),
+    maxResults: z.number().int().min(1).max(100).optional().describe("The maximum number of policies to return in a single response. If not specified, the default is 10 policies per page, with a maximum of 100 per page."),
     policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The identifier of the policy engine whose policies to retrieve."),
     targetResourceScope: z.string().min(20).max(1011).optional().describe("Optional filter to list policies that apply to a specific resource scope or resource type. This helps narrow down policy results to those relevant for particular Amazon Web Services resources, agent tools, or operational contexts within the policy engine ecosystem."),
   }),
@@ -2628,7 +2633,7 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
+              "name": params.name,
             };
       const result = await callApi("POST", "/identities/GetWorkloadIdentity", body, undefined, undefined);
       return {
@@ -2657,8 +2662,8 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
-              allowedResourceOauth2ReturnUrls: params.allowedResourceOauth2ReturnUrls,
+              "name": params.name,
+              "allowedResourceOauth2ReturnUrls": params.allowedResourceOauth2ReturnUrls,
             };
       const result = await callApi("POST", "/identities/UpdateWorkloadIdentity", body, undefined, undefined);
       return {
@@ -2686,7 +2691,7 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              name: params.name,
+              "name": params.name,
             };
       const result = await callApi("POST", "/identities/DeleteWorkloadIdentity", body, undefined, undefined);
       return {
@@ -2706,7 +2711,7 @@ server.registerTool(
 server.registerTool(
   "list-workload-identities",
   {
-    description: "Lists all workload identities in your account.",
+    description: "Lists all workload identities in your account. [Paginated: inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: workloadIdentities]",
     inputSchema: z.object({
     nextToken: z.string().optional().describe("Pagination token."),
     maxResults: z.number().int().optional().describe("Maximum number of results to return."),
@@ -2715,8 +2720,8 @@ server.registerTool(
   async (params) => {
     try {
       const body = {
-              nextToken: params.nextToken,
-              maxResults: params.maxResults,
+              "nextToken": params.nextToken,
+              "maxResults": params.maxResults,
             };
       const result = await callApi("POST", "/identities/ListWorkloadIdentities", body, undefined, undefined);
       return {

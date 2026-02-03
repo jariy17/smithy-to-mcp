@@ -15,6 +15,13 @@ import {
   HttpTrait,
 } from "./smithy-types.js";
 
+export interface PaginationConfig {
+  inputToken?: string;  // Input field name for pagination token
+  outputToken?: string; // Output field name for next page token
+  pageSize?: string;    // Input field name for page size
+  items?: string;       // Output field name containing the list items
+}
+
 export interface ParsedOperation {
   name: string;
   shapeId: string;
@@ -23,6 +30,7 @@ export interface ParsedOperation {
   input?: ParsedStructure;
   output?: ParsedStructure;
   errors?: string[];
+  pagination?: PaginationConfig;
 }
 
 export interface ParsedStructure {
@@ -45,6 +53,7 @@ export interface ParsedMember {
   required: boolean;
   jsonSchema: JsonSchema;
   httpBinding?: HttpBinding;
+  jsonName?: string; // Wire name if different from member name (@jsonName trait)
 }
 
 export interface ParsedService {
@@ -74,6 +83,7 @@ export type JsonSchema = {
   minLength?: number;
   maxLength?: number;
   pattern?: string;
+  default?: unknown;
 };
 
 export class SmithyParser {
@@ -257,6 +267,12 @@ export class SmithyParser {
       op.http = shape.traits["smithy.api#http"] as HttpTrait;
     }
 
+    // Get pagination trait
+    const pagination = this.getPagination(shape.traits);
+    if (pagination) {
+      op.pagination = pagination;
+    }
+
     // Parse input structure
     if (shape.input) {
       const inputShape = this.model.shapes[shape.input.target];
@@ -308,6 +324,7 @@ export class SmithyParser {
           required: isRequired,
           jsonSchema: this.shapeToJsonSchema(member.target),
           httpBinding: this.getHttpBinding(member.traits),
+          jsonName: this.getJsonName(member.traits),
         });
       }
     }
@@ -341,6 +358,31 @@ export class SmithyParser {
     }
 
     return undefined; // Will go in body by default
+  }
+
+  private getJsonName(traits?: Record<string, unknown>): string | undefined {
+    if (!traits) return undefined;
+    return traits["smithy.api#jsonName"] as string | undefined;
+  }
+
+  private getPagination(traits?: Record<string, unknown>): PaginationConfig | undefined {
+    if (!traits) return undefined;
+
+    const paginatedTrait = traits["smithy.api#paginated"] as {
+      inputToken?: string;
+      outputToken?: string;
+      pageSize?: string;
+      items?: string;
+    } | undefined;
+
+    if (!paginatedTrait) return undefined;
+
+    return {
+      inputToken: paginatedTrait.inputToken,
+      outputToken: paginatedTrait.outputToken,
+      pageSize: paginatedTrait.pageSize,
+      items: paginatedTrait.items,
+    };
   }
 
   shapeToJsonSchema(shapeId: string): JsonSchema {
@@ -399,18 +441,17 @@ export class SmithyParser {
       case "string":
         return this.stringToSchema(shape, documentation);
       case "boolean":
-        return { type: "boolean", description: documentation };
+        return this.booleanToSchema(shape, documentation);
       case "byte":
-        return { type: "integer", minimum: -128, maximum: 127, description: documentation };
+        return this.numberToSchema(shape, "integer", documentation, -128, 127);
       case "short":
-        return { type: "integer", minimum: -32768, maximum: 32767, description: documentation };
+        return this.numberToSchema(shape, "integer", documentation, -32768, 32767);
       case "integer":
-        return { type: "integer", description: documentation };
       case "long":
-        return { type: "integer", description: documentation };
+        return this.numberToSchema(shape, "integer", documentation);
       case "float":
       case "double":
-        return { type: "number", description: documentation };
+        return this.numberToSchema(shape, "number", documentation);
       case "bigInteger":
         return { type: "string", format: "bigint", description: documentation };
       case "bigDecimal":
@@ -451,6 +492,54 @@ export class SmithyParser {
       const patternTrait = shape.traits["smithy.api#pattern"] as string | undefined;
       if (patternTrait) {
         schema.pattern = patternTrait;
+      }
+
+      const defaultTrait = shape.traits["smithy.api#default"];
+      if (defaultTrait !== undefined) {
+        schema.default = defaultTrait;
+      }
+    }
+
+    return schema;
+  }
+
+  private booleanToSchema(shape: SmithyShape, documentation?: string): JsonSchema {
+    const schema: JsonSchema = { type: "boolean", description: documentation };
+
+    if (shape.traits) {
+      const defaultTrait = shape.traits["smithy.api#default"];
+      if (defaultTrait !== undefined) {
+        schema.default = defaultTrait;
+      }
+    }
+
+    return schema;
+  }
+
+  private numberToSchema(
+    shape: SmithyShape,
+    baseType: "integer" | "number",
+    documentation?: string,
+    defaultMin?: number,
+    defaultMax?: number
+  ): JsonSchema {
+    const schema: JsonSchema = { type: baseType, description: documentation };
+
+    // Apply default bounds for byte/short types
+    if (defaultMin !== undefined) schema.minimum = defaultMin;
+    if (defaultMax !== undefined) schema.maximum = defaultMax;
+
+    if (shape.traits) {
+      // @range trait overrides default bounds
+      const rangeTrait = shape.traits["smithy.api#range"] as { min?: number; max?: number } | undefined;
+      if (rangeTrait) {
+        if (rangeTrait.min !== undefined) schema.minimum = rangeTrait.min;
+        if (rangeTrait.max !== undefined) schema.maximum = rangeTrait.max;
+      }
+
+      const defaultTrait = shape.traits["smithy.api#default"];
+      if (defaultTrait !== undefined) {
+        schema.default = defaultTrait;
       }
     }
 
