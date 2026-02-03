@@ -2,12 +2,12 @@
 /**
  * MCP Server generated from Smithy model
  * Service: AmazonBedrockAgentCoreControl
- * Generated at: 2026-02-03T02:11:17.043Z
+ * Generated at: 2026-02-03T02:19:47.055Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // Configuration
 const CONFIG = {
@@ -78,11 +78,13 @@ async function callApi<T>(
 }
 
 // Tool: delete-resource-policy
-server.tool(
+server.registerTool(
   "delete-resource-policy",
-  "<p>Deletes the resource-based policy for a specified resource.</p> <note> <p>This feature is currently available only for AgentCore Runtime and Gateway.</p> </note>",
   {
+    description: "<p>Deletes the resource-based policy for a specified resource.</p> <note> <p>This feature is currently available only for AgentCore Runtime and Gateway.</p> </note>",
+    inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011),
+  }),
   },
   async (params) => {
     try {
@@ -104,11 +106,13 @@ server.tool(
 );
 
 // Tool: get-resource-policy
-server.tool(
+server.registerTool(
   "get-resource-policy",
-  "<p>Retrieves the resource-based policy for a specified resource.</p> <note> <p>This feature is currently available only for AgentCore Runtime and Gateway.</p> </note>",
   {
+    description: "<p>Retrieves the resource-based policy for a specified resource.</p> <note> <p>This feature is currently available only for AgentCore Runtime and Gateway.</p> </note>",
+    inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011),
+  }),
   },
   async (params) => {
     try {
@@ -130,11 +134,13 @@ server.tool(
 );
 
 // Tool: get-token-vault
-server.tool(
+server.registerTool(
   "get-token-vault",
-  "<p>Retrieves information about a token vault.</p>",
   {
+    description: "<p>Retrieves information about a token vault.</p>",
+    inputSchema: z.object({
     tokenVaultId: z.string().min(1).max(64).regex(/^[a-zA-Z0-9\-_]+$/).optional(),
+  }),
   },
   async (params) => {
     try {
@@ -156,11 +162,13 @@ server.tool(
 );
 
 // Tool: list-tags-for-resource
-server.tool(
+server.registerTool(
   "list-tags-for-resource",
-  "<p>Lists the tags associated with the specified resource.</p> <note> <p>This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.</p> </note>",
   {
+    description: "<p>Lists the tags associated with the specified resource.</p> <note> <p>This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.</p> </note>",
+    inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011).regex(/^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$/),
+  }),
   },
   async (params) => {
     try {
@@ -182,12 +190,14 @@ server.tool(
 );
 
 // Tool: put-resource-policy
-server.tool(
+server.registerTool(
   "put-resource-policy",
-  "<p>Creates or updates a resource-based policy for a resource with the specified resourceArn.</p> <note> <p>This feature is currently available only for AgentCore Runtime and Gateway.</p> </note>",
   {
+    description: "<p>Creates or updates a resource-based policy for a resource with the specified resourceArn.</p> <note> <p>This feature is currently available only for AgentCore Runtime and Gateway.</p> </note>",
+    inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011),
     policy: z.string().min(1).max(20480),
+  }),
   },
   async (params) => {
     try {
@@ -212,12 +222,14 @@ server.tool(
 );
 
 // Tool: set-token-vault-c-m-k
-server.tool(
+server.registerTool(
   "set-token-vault-c-m-k",
-  "<p>Sets the customer master key (CMK) for a token vault.</p>",
   {
+    description: "<p>Sets the customer master key (CMK) for a token vault.</p>",
+    inputSchema: z.object({
     tokenVaultId: z.string().min(1).max(64).regex(/^[a-zA-Z0-9\-_]+$/).optional(),
     kmsConfiguration: z.object({ keyType: z.enum(["CustomerManagedKey", "ServiceManagedKey"]), kmsKeyArn: z.string().min(1).max(2048).regex(/^arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$/).optional() }),
+  }),
   },
   async (params) => {
     try {
@@ -240,12 +252,14 @@ server.tool(
 );
 
 // Tool: tag-resource
-server.tool(
+server.registerTool(
   "tag-resource",
-  "<p>Associates the specified tags to a resource with the specified resourceArn. If existing tags on a resource are not specified in the request parameters, they are not changed. When a resource is deleted, the tags associated with that resource are also deleted.</p> <note> <p>This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.</p> </note>",
   {
+    description: "<p>Associates the specified tags to a resource with the specified resourceArn. If existing tags on a resource are not specified in the request parameters, they are not changed. When a resource is deleted, the tags associated with that resource are also deleted.</p> <note> <p>This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.</p> </note>",
+    inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011).regex(/^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$/),
     tags: z.record(z.string(), z.string().min(0).max(256).regex(/^[a-zA-Z0-9\s._:/=+@-]*$/)),
+  }),
   },
   async (params) => {
     try {
@@ -270,12 +284,14 @@ server.tool(
 );
 
 // Tool: untag-resource
-server.tool(
+server.registerTool(
   "untag-resource",
-  "<p>Removes the specified tags from the specified resource.</p> <note> <p>This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.</p> </note>",
   {
+    description: "<p>Removes the specified tags from the specified resource.</p> <note> <p>This feature is currently available only for AgentCore Runtime, Browser, Code Interpreter tool, and Gateway.</p> </note>",
+    inputSchema: z.object({
     resourceArn: z.string().min(20).max(1011).regex(/^arn:(?:[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:([a-z-]+/[^/]+)(?:/[a-z-]+/[^/]+)*$/),
     tagKeys: z.array(z.string().min(1).max(128).regex(/^[a-zA-Z0-9\s._:/=+@-]*$/)),
+  }),
   },
   async (params) => {
     try {

@@ -34,7 +34,7 @@ export class McpGenerator {
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // Configuration
 const CONFIG = {
@@ -138,10 +138,12 @@ main().catch((error) => {
     const apiCall = this.generateApiCall(operation);
 
     return `// Tool: ${toolName}
-server.tool(
+server.registerTool(
   "${toolName}",
-  ${JSON.stringify(description)},
-  ${zodSchema},
+  {
+    description: ${JSON.stringify(description)},
+    inputSchema: ${zodSchema},
+  },
   async (params) => {
     try {
       ${apiCall}
@@ -169,10 +171,10 @@ server.tool(
 
   private generateZodSchema(operation: ParsedOperation): string {
     if (!operation.input || operation.input.members.length === 0) {
-      return "{}";
+      return "z.object({})";
     }
 
-    const schemaLines: string[] = ["{"];
+    const schemaLines: string[] = ["z.object({"];
 
     for (const member of operation.input.members) {
       const zodType = this.jsonSchemaToZod(member.jsonSchema);
@@ -182,7 +184,7 @@ server.tool(
       schemaLines.push(line);
     }
 
-    schemaLines.push("  }");
+    schemaLines.push("  })");
     return schemaLines.join("\n");
   }
 

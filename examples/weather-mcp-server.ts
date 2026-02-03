@@ -2,12 +2,12 @@
 /**
  * MCP Server generated from Smithy model
  * Service: WeatherService
- * Generated at: 2026-02-03T02:02:14.135Z
+ * Generated at: 2026-02-03T02:19:45.782Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // Configuration
 const CONFIG = {
@@ -78,12 +78,14 @@ async function callApi<T>(
 }
 
 // Tool: get-current-weather
-server.tool(
+server.registerTool(
   "get-current-weather",
-  "Get current weather for a location",
   {
+    description: "Get current weather for a location",
+    inputSchema: z.object({
     city: z.string(),
     units: z.enum(["celsius", "fahrenheit"]).optional(),
+  }),
   },
   async (params) => {
     try {
@@ -108,12 +110,14 @@ server.tool(
 );
 
 // Tool: get-forecast
-server.tool(
+server.registerTool(
   "get-forecast",
-  "Get weather forecast for a location",
   {
+    description: "Get weather forecast for a location",
+    inputSchema: z.object({
     city: z.string(),
     days: z.number().int().optional(),
+  }),
   },
   async (params) => {
     try {

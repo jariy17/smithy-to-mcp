@@ -2,12 +2,12 @@
 /**
  * MCP Server generated from Smithy model
  * Service: AmazonBedrockAgentCore
- * Generated at: 2026-02-03T02:11:13.951Z
+ * Generated at: 2026-02-03T02:19:46.408Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // Configuration
 const CONFIG = {
@@ -78,12 +78,14 @@ async function callApi<T>(
 }
 
 // Tool: complete-resource-token-auth
-server.tool(
+server.registerTool(
   "complete-resource-token-auth",
-  "<p>Confirms the user authentication session for obtaining OAuth2.0 tokens for a resource.</p>",
   {
+    description: "<p>Confirms the user authentication session for obtaining OAuth2.0 tokens for a resource.</p>",
+    inputSchema: z.object({
     userIdentifier: z.union([z.object({ userToken: z.string().min(1).max(131072).regex(/^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+$/) }), z.object({ userId: z.string().min(1).max(128) })]),
     sessionUri: z.string().min(1).max(1024).regex(/^urn:ietf:params:oauth:request_uri:[a-zA-Z0-9-._~]+$/),
+  }),
   },
   async (params) => {
     try {
@@ -106,12 +108,14 @@ server.tool(
 );
 
 // Tool: get-resource-api-key
-server.tool(
+server.registerTool(
   "get-resource-api-key",
-  "<p>Retrieves the API key associated with an API key credential provider.</p>",
   {
+    description: "<p>Retrieves the API key associated with an API key credential provider.</p>",
+    inputSchema: z.object({
     workloadIdentityToken: z.string().min(1).max(131072),
     resourceCredentialProviderName: z.string().min(1).max(128).regex(/^[a-zA-Z0-9\-_]+$/),
+  }),
   },
   async (params) => {
     try {
@@ -134,10 +138,11 @@ server.tool(
 );
 
 // Tool: get-resource-oauth2-token
-server.tool(
+server.registerTool(
   "get-resource-oauth2-token",
-  "<p>Returns the OAuth 2.0 token of the provided resource.</p>",
   {
+    description: "<p>Returns the OAuth 2.0 token of the provided resource.</p>",
+    inputSchema: z.object({
     workloadIdentityToken: z.string().min(1).max(131072),
     resourceCredentialProviderName: z.string().min(1).max(128).regex(/^[a-zA-Z0-9\-_]+$/),
     scopes: z.array(z.string().min(1).max(128)),
@@ -147,6 +152,7 @@ server.tool(
     forceAuthentication: z.boolean().optional(),
     customParameters: z.record(z.string(), z.string().min(1).max(2048)).optional(),
     customState: z.string().min(1).max(4096).optional(),
+  }),
   },
   async (params) => {
     try {
@@ -176,11 +182,13 @@ server.tool(
 );
 
 // Tool: get-workload-access-token
-server.tool(
+server.registerTool(
   "get-workload-access-token",
-  "<p>Obtains a workload access token for agentic workloads not acting on behalf of a user.</p>",
   {
+    description: "<p>Obtains a workload access token for agentic workloads not acting on behalf of a user.</p>",
+    inputSchema: z.object({
     workloadName: z.string().min(3).max(255).regex(/^[A-Za-z0-9_.-]+$/),
+  }),
   },
   async (params) => {
     try {
@@ -202,12 +210,14 @@ server.tool(
 );
 
 // Tool: get-workload-access-token-for-j-w-t
-server.tool(
+server.registerTool(
   "get-workload-access-token-for-j-w-t",
-  "<p>Obtains a workload access token for agentic workloads acting on behalf of a user, using a JWT token.</p>",
   {
+    description: "<p>Obtains a workload access token for agentic workloads acting on behalf of a user, using a JWT token.</p>",
+    inputSchema: z.object({
     workloadName: z.string().min(3).max(255).regex(/^[A-Za-z0-9_.-]+$/),
     userToken: z.string().min(1).max(131072).regex(/^[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+.[A-Za-z0-9-_=]+$/),
+  }),
   },
   async (params) => {
     try {
@@ -230,12 +240,14 @@ server.tool(
 );
 
 // Tool: get-workload-access-token-for-user-id
-server.tool(
+server.registerTool(
   "get-workload-access-token-for-user-id",
-  "<p>Obtains a workload access token for agentic workloads acting on behalf of a user, using the user's ID.</p>",
   {
+    description: "<p>Obtains a workload access token for agentic workloads acting on behalf of a user, using the user's ID.</p>",
+    inputSchema: z.object({
     workloadName: z.string().min(3).max(255).regex(/^[A-Za-z0-9_.-]+$/),
     userId: z.string().min(1).max(128),
+  }),
   },
   async (params) => {
     try {
@@ -258,16 +270,18 @@ server.tool(
 );
 
 // Tool: invoke-code-interpreter
-server.tool(
+server.registerTool(
   "invoke-code-interpreter",
-  "<p>Executes code within an active code interpreter session in Amazon Bedrock. This operation processes the provided code, runs it in a secure environment, and returns the execution results including output, errors, and generated visualizations.</p> <p>To execute code, you must specify the code interpreter identifier, session ID, and the code to run in the arguments parameter. The operation returns a stream containing the execution results, which can include text output, error messages, and data visualizations.</p> <p>This operation is subject to request rate limiting based on your account's service quotas.</p> <p>The following operations are related to <code>InvokeCodeInterpreter</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_StartCodeInterpreterSession.html\">StartCodeInterpreterSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_GetCodeInterpreterSession.html\">GetCodeInterpreterSession</a> </p> </li> </ul>",
   {
+    description: "<p>Executes code within an active code interpreter session in Amazon Bedrock. This operation processes the provided code, runs it in a secure environment, and returns the execution results including output, errors, and generated visualizations.</p> <p>To execute code, you must specify the code interpreter identifier, session ID, and the code to run in the arguments parameter. The operation returns a stream containing the execution results, which can include text output, error messages, and data visualizations.</p> <p>This operation is subject to request rate limiting based on your account's service quotas.</p> <p>The following operations are related to <code>InvokeCodeInterpreter</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_StartCodeInterpreterSession.html\">StartCodeInterpreterSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_GetCodeInterpreterSession.html\">GetCodeInterpreterSession</a> </p> </li> </ul>",
+    inputSchema: z.object({
     codeInterpreterIdentifier: z.string(),
     sessionId: z.string().regex(/^[0-9a-zA-Z]{1,40}$/).optional(),
     traceId: z.string().optional(),
     traceParent: z.string().optional(),
     name: z.enum(["executeCode", "executeCommand", "readFiles", "listFiles", "removeFiles", "writeFiles", "startCommandExecution", "getTask", "stopTask"]),
     arguments: z.object({ code: z.string().max(100000000).optional(), language: z.enum(["python", "javascript", "typescript"]).optional(), clearContext: z.boolean().optional(), command: z.string().max(100000000).optional(), path: z.string().max(100000000).optional(), paths: z.array(z.string().max(100000000)).optional(), content: z.array(z.object({ path: z.string().max(100000000), text: z.string().max(100000000).optional(), blob: z.string().optional() })).optional(), directoryPath: z.string().max(100000000).optional(), taskId: z.string().max(100000000).optional() }).optional(),
+  }),
   },
   async (params) => {
     try {
