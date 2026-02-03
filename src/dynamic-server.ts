@@ -5,11 +5,14 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import * as z from "zod/v4";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { defaultProvider } from "@aws-sdk/credential-provider-node";
-import { HttpRequest } from "@smithy/protocol-http";
+import { HttpRequest as SmithyHttpRequest } from "@smithy/protocol-http";
+import { createServer, IncomingMessage, ServerResponse } from "http";
 import { SmithyParser, ParsedService, ParsedOperation, JsonSchema, WaiterConfig } from "./smithy-parser.js";
 
 export interface DynamicServerOptions {
@@ -17,6 +20,11 @@ export interface DynamicServerOptions {
   apiKey?: string;
   timeout?: number;
   region?: string;
+  // HTTP server options
+  http?: boolean;
+  port?: number;
+  host?: string;
+  httpApiKey?: string;
 }
 
 export class DynamicMcpServer {
@@ -341,7 +349,7 @@ export class DynamicMcpServer {
       throw new Error("SigV4 signer not initialized");
     }
 
-    const request = new HttpRequest({
+    const request = new SmithyHttpRequest({
       method,
       protocol: url.protocol,
       hostname: url.hostname,
@@ -528,6 +536,197 @@ export class DynamicMcpServer {
     await this.server.connect(transport);
     console.error(`${this.service.name} MCP server running on stdio`);
   }
+
+  async startHttp(port: number, host: string, apiKey?: string): Promise<void> {
+    const transports: Record<string, StreamableHTTPServerTransport> = {};
+    const servers: Record<string, McpServer> = {};
+
+    const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
+      // CORS headers
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Mcp-Session-Id");
+      res.setHeader("Access-Control-Expose-Headers", "Mcp-Session-Id");
+
+      if (req.method === "OPTIONS") {
+        res.writeHead(200);
+        res.end();
+        return;
+      }
+
+      const url = new URL(req.url || "/", `http://${req.headers.host}`);
+
+      // Health check (no auth required)
+      if (req.method === "GET" && url.pathname === "/health") {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ status: "ok", service: this.service.name }));
+        return;
+      }
+
+      // API key validation for /mcp endpoint
+      if (url.pathname === "/mcp" && apiKey) {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
+          res.writeHead(401, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Unauthorized" }));
+          return;
+        }
+      }
+
+      // Streamable HTTP endpoint - handles GET, POST, DELETE
+      if (url.pathname === "/mcp") {
+        const sessionId = req.headers["mcp-session-id"] as string | undefined;
+
+        // Handle existing session
+        if (sessionId && transports[sessionId]) {
+          const transport = transports[sessionId];
+          await this.handleWithBody(req, res, transport);
+          return;
+        }
+
+        // Handle new session (POST with initialize request)
+        if (req.method === "POST") {
+          await this.handleNewSession(req, res, transports, servers);
+          return;
+        }
+
+        // No session for GET/DELETE
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "No session. Send initialize request first." }));
+        return;
+      }
+
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Not found" }));
+    });
+
+    httpServer.listen(port, host, () => {
+      console.error(`${this.service.name} MCP server running on http://${host}:${port}`);
+      console.error(`  Endpoint: http://${host}:${port}/mcp`);
+      console.error(`  Health:   http://${host}:${port}/health`);
+      if (apiKey) {
+        console.error(`  Auth:     Authorization: Bearer <key>`);
+      }
+    });
+
+    process.on("SIGINT", async () => {
+      console.error("Shutting down...");
+      for (const sessionId in transports) {
+        await transports[sessionId].close();
+      }
+      httpServer.close();
+      process.exit(0);
+    });
+  }
+
+  private async handleWithBody(
+    req: IncomingMessage,
+    res: ServerResponse,
+    transport: StreamableHTTPServerTransport
+  ): Promise<void> {
+    if (req.method === "GET" || req.method === "DELETE") {
+      await transport.handleRequest(req, res);
+      return;
+    }
+
+    // POST - need to parse body
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", async () => {
+      try {
+        const parsed = JSON.parse(body);
+        await transport.handleRequest(req, res, parsed);
+      } catch {
+        if (!res.headersSent) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Invalid JSON" }));
+        }
+      }
+    });
+  }
+
+  private async handleNewSession(
+    req: IncomingMessage,
+    res: ServerResponse,
+    transports: Record<string, StreamableHTTPServerTransport>,
+    servers: Record<string, McpServer>
+  ): Promise<void> {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", async () => {
+      try {
+        const parsed = JSON.parse(body);
+
+        if (!isInitializeRequest(parsed)) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "First request must be initialize" }));
+          return;
+        }
+
+        // Create new transport and server for this session
+        const transport = new StreamableHTTPServerTransport({
+          sessionIdGenerator: () => crypto.randomUUID(),
+          onsessioninitialized: (sessionId) => {
+            transports[sessionId] = transport;
+            servers[sessionId] = sessionServer;
+          },
+        });
+
+        transport.onclose = () => {
+          const sid = transport.sessionId;
+          if (sid) {
+            delete transports[sid];
+            delete servers[sid];
+          }
+        };
+
+        // Create server and register tools
+        const sessionServer = new McpServer({
+          name: this.service.name,
+          version: this.service.version || "1.0.0",
+        });
+
+        for (const operation of this.service.operations) {
+          if (!operation.internal) {
+            this.registerOperationToolForServer(sessionServer, operation);
+          }
+        }
+
+        await sessionServer.connect(transport);
+        await transport.handleRequest(req, res, parsed);
+      } catch {
+        if (!res.headersSent) {
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Failed to initialize session" }));
+        }
+      }
+    });
+  }
+
+  private registerOperationToolForServer(server: McpServer, operation: ParsedOperation): void {
+    const toolName = this.operationToToolName(operation.name);
+    const description = this.buildDescription(operation);
+    const zodSchema = this.buildZodSchema(operation);
+
+    server.registerTool(
+      toolName,
+      { description, inputSchema: zodSchema },
+      async (params) => {
+        try {
+          const result = await this.callApi(operation, params as Record<string, unknown>);
+          return {
+            content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return {
+            content: [{ type: "text" as const, text: `Error: ${message}` }],
+            isError: true,
+          };
+        }
+      }
+    );
+  }
 }
 
 /**
@@ -549,5 +748,12 @@ export async function serveSmithy(
 
   const server = new DynamicMcpServer(service, options);
   await server.initialize();
-  await server.start();
+
+  if (options.http) {
+    const port = options.port || 3000;
+    const host = options.host || "127.0.0.1";
+    await server.startHttp(port, host, options.httpApiKey);
+  } else {
+    await server.start();
+  }
 }

@@ -374,9 +374,13 @@ program
   .description("Run a dynamic MCP server directly from a Smithy JSON AST file or AWS service (aws:service-name)")
   .argument("<input>", "Path to Smithy JSON AST file, or aws:<service-name> to auto-download")
   .option("-u, --base-url <url>", "Base URL for API calls (default: from model or API_BASE_URL env)")
-  .option("-k, --api-key <key>", "API key for authentication (default: API_KEY env)")
+  .option("-k, --api-key <key>", "API key for target API authentication (default: API_KEY env)")
   .option("-t, --timeout <ms>", "Request timeout in milliseconds", "30000")
   .option("-r, --region <region>", "AWS region for SigV4 signing (default: AWS_REGION env or us-east-1)")
+  .option("--http", "Run as HTTP server instead of stdio (for browser agents)")
+  .option("--port <port>", "HTTP server port", "3000")
+  .option("--host <host>", "HTTP server host (default: 127.0.0.1 for security)", "127.0.0.1")
+  .option("--http-api-key <key>", "API key required for HTTP clients (Bearer token)")
   .option("--no-cache", "Skip cache and re-download AWS models")
   .action(async (input: string, options) => {
     try {
@@ -387,6 +391,10 @@ program
         apiKey: options.apiKey,
         timeout: parseInt(options.timeout),
         region: options.region,
+        http: options.http,
+        port: parseInt(options.port),
+        host: options.host,
+        httpApiKey: options.httpApiKey,
       });
     } catch (error) {
       console.error("Error:", error instanceof Error ? error.message : error);
