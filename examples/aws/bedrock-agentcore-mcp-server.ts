@@ -2,7 +2,7 @@
 /**
  * MCP Server generated from Smithy model
  * Service: AmazonBedrockAgentCore
- * Generated at: 2026-02-03T03:03:55.410Z
+ * Generated at: 2026-02-03T03:12:16.350Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";

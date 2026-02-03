@@ -2,7 +2,7 @@
 /**
  * MCP Server generated from Smithy model
  * Service: WeatherService
- * Generated at: 2026-02-03T03:03:55.372Z
+ * Generated at: 2026-02-03T03:12:16.310Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";

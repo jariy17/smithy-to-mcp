@@ -137,6 +137,7 @@ server.registerTool(
 | `@default` | Default values in Zod schemas |
 | `@jsonName` | Wire name for JSON serialization |
 | `@paginated` | Pagination config (shown in tool description) |
+| `@waitable` | Generates `wait-for-*` polling tools |
 | `@enumValue` | Enum wire values |
 | `aws.api#service` | AWS endpoint prefix detection |
 | `aws.auth#sigv4` | AWS SigV4 signing detection |
@@ -160,7 +161,6 @@ The following Smithy features are not yet parsed:
 | `@xmlName`, `@xmlAttribute`, `@xmlNamespace` | XML formatting |
 | `@mediaType` | Content type hints |
 | `@eventPayload`, `@eventHeader` | Event streams |
-| `@waiters` | Polling/waiter configurations |
 | `@retryable` | Retry hints |
 | `@examples` | Usage examples |
 | `@externalDocumentation` | External doc links |
@@ -173,7 +173,6 @@ The following Smithy features are not yet parsed:
 - Auto-pagination (currently just shows pagination fields in description)
 - Streaming bodies
 - Event streams
-- Waiters
 
 ## Pre-generated examples
 

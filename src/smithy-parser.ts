@@ -22,6 +22,27 @@ export interface PaginationConfig {
   items?: string;       // Output field name containing the list items
 }
 
+export interface WaiterAcceptor {
+  state: "success" | "failure" | "retry";
+  matcher: {
+    output?: {
+      path: string;
+      expected: string;
+      comparator: "stringEquals" | "booleanEquals" | "allStringEquals" | "anyStringEquals";
+    };
+    errorType?: string;
+    success?: boolean;
+  };
+}
+
+export interface WaiterConfig {
+  name: string;
+  documentation?: string;
+  acceptors: WaiterAcceptor[];
+  minDelay: number;
+  maxDelay: number;
+}
+
 export interface ParsedOperation {
   name: string;
   shapeId: string;
@@ -31,6 +52,7 @@ export interface ParsedOperation {
   output?: ParsedStructure;
   errors?: string[];
   pagination?: PaginationConfig;
+  waiters?: WaiterConfig[];
 }
 
 export interface ParsedStructure {
@@ -300,6 +322,12 @@ export class SmithyParser {
       op.errors = shape.errors.map((e) => getShapeName(e.target));
     }
 
+    // Parse waiters
+    const waiters = this.getWaiters(shape.traits);
+    if (waiters && waiters.length > 0) {
+      op.waiters = waiters;
+    }
+
     return op;
   }
 
@@ -383,6 +411,54 @@ export class SmithyParser {
       pageSize: paginatedTrait.pageSize,
       items: paginatedTrait.items,
     };
+  }
+
+  private getWaiters(traits?: Record<string, unknown>): WaiterConfig[] | undefined {
+    if (!traits) return undefined;
+
+    const waitableTrait = traits["smithy.waiters#waitable"] as Record<string, {
+      documentation?: string;
+      acceptors: Array<{
+        state: "success" | "failure" | "retry";
+        matcher: {
+          output?: {
+            path: string;
+            expected: string;
+            comparator: string;
+          };
+          errorType?: string;
+          success?: boolean;
+        };
+      }>;
+      minDelay: number;
+      maxDelay: number;
+    }> | undefined;
+
+    if (!waitableTrait) return undefined;
+
+    const waiters: WaiterConfig[] = [];
+    for (const [name, config] of Object.entries(waitableTrait)) {
+      waiters.push({
+        name,
+        documentation: config.documentation,
+        acceptors: config.acceptors.map((a) => ({
+          state: a.state,
+          matcher: {
+            output: a.matcher.output ? {
+              path: a.matcher.output.path,
+              expected: a.matcher.output.expected,
+              comparator: a.matcher.output.comparator as WaiterAcceptor["matcher"]["output"]extends { comparator: infer C } ? C : never,
+            } : undefined,
+            errorType: a.matcher.errorType,
+            success: a.matcher.success,
+          },
+        })),
+        minDelay: config.minDelay,
+        maxDelay: config.maxDelay,
+      });
+    }
+
+    return waiters.length > 0 ? waiters : undefined;
   }
 
   shapeToJsonSchema(shapeId: string): JsonSchema {

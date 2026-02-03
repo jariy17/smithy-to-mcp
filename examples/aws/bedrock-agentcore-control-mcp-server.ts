@@ -2,7 +2,7 @@
 /**
  * MCP Server generated from Smithy model
  * Service: AmazonBedrockAgentCoreControl
- * Generated at: 2026-02-03T03:02:33.184Z
+ * Generated at: 2026-02-03T03:11:16.210Z
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -1765,6 +1765,83 @@ server.registerTool(
   }
 );
 
+// Waiter Tool: wait-for-memory-created
+// Polls get-memory until MemoryCreated condition is met
+server.registerTool(
+  "wait-for-memory-created",
+  {
+    description: "Wait until MemoryCreated condition is met by polling GetMemory (polls every undefined-undefineds)",
+    inputSchema: z.object({
+      ...z.object({
+    memoryId: z.string().min(12).regex(new RegExp("^[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$")).describe("The unique identifier of the memory to retrieve."),
+    view: z.enum(["full", "without_decryption"]).optional().describe("The level of detail to return for the memory."),
+  }).shape,
+      maxWaitTime: z.number().int().optional().describe("Maximum time to wait in seconds (default: 300)"),
+    }),
+  },
+  async (params) => {
+    const maxWaitTime = (params.maxWaitTime as number) || 300;
+    const startTime = Date.now();
+    let delay = undefined * 1000;
+    const maxDelay = undefined * 1000;
+    let attempts = 0;
+
+    const checkAcceptors = (result: unknown): "success" | "failure" | "retry" => {
+      const r = result as Record<string, unknown>;
+      if (result?.memory?.status === "CREATING") return "retry";
+        if (result?.memory?.status === "ACTIVE") return "success";
+        if (result?.memory?.status === "FAILED") return "failure";
+      return "retry";
+    };
+
+    while (true) {
+      attempts++;
+      try {
+        const pathParams = {
+              memoryId: String(params.memoryId),
+            };
+      const queryParams = {
+              "view": params.view !== undefined ? String(params.view) : undefined,
+            };
+      const result = await callApi("GET", "/memories/{memoryId}/details", undefined, pathParams, queryParams);
+        const state = checkAcceptors(result);
+        if (state === "success") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "success", attempts, result }, null, 2) }],
+          };
+        }
+        if (state === "failure") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "failure", attempts, result }, null, 2) }],
+            isError: true,
+          };
+        }
+      } catch (error) {
+        // Check if error matches any failure acceptor
+        const message = error instanceof Error ? error.message : String(error);
+        if (Date.now() - startTime > maxWaitTime * 1000) {
+          return {
+            content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts: ${message}` }],
+            isError: true,
+          };
+        }
+      }
+
+      // Check timeout
+      if (Date.now() - startTime > maxWaitTime * 1000) {
+        return {
+          content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts` }],
+          isError: true,
+        };
+      }
+
+      // Wait before next poll with exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay * 1.5, maxDelay);
+    }
+  }
+);
+
 // Tool: update-memory
 server.registerTool(
   "update-memory",
@@ -2219,6 +2296,153 @@ server.registerTool(
   }
 );
 
+// Waiter Tool: wait-for-policy-engine-active
+// Polls get-policy-engine until PolicyEngineActive condition is met
+server.registerTool(
+  "wait-for-policy-engine-active",
+  {
+    description: "Wait until a PolicyEngine is active (polls every 2-120s)",
+    inputSchema: z.object({
+      ...z.object({
+    policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy engine to be retrieved. This must be a valid policy engine ID that exists within the account."),
+  }).shape,
+      maxWaitTime: z.number().int().optional().describe("Maximum time to wait in seconds (default: 300)"),
+    }),
+  },
+  async (params) => {
+    const maxWaitTime = (params.maxWaitTime as number) || 300;
+    const startTime = Date.now();
+    let delay = 2 * 1000;
+    const maxDelay = 120 * 1000;
+    let attempts = 0;
+
+    const checkAcceptors = (result: unknown): "success" | "failure" | "retry" => {
+      const r = result as Record<string, unknown>;
+      if (result?.status === "ACTIVE") return "success";
+        if (result?.status === "CREATE_FAILED") return "failure";
+        if (result?.status === "UPDATE_FAILED") return "failure";
+        if (result?.status === "DELETE_FAILED") return "failure";
+      return "retry";
+    };
+
+    while (true) {
+      attempts++;
+      try {
+        const pathParams = {
+              policyEngineId: String(params.policyEngineId),
+            };
+      const result = await callApi("GET", "/policy-engines/{policyEngineId}", undefined, pathParams, undefined);
+        const state = checkAcceptors(result);
+        if (state === "success") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "success", attempts, result }, null, 2) }],
+          };
+        }
+        if (state === "failure") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "failure", attempts, result }, null, 2) }],
+            isError: true,
+          };
+        }
+      } catch (error) {
+        // Check if error matches any failure acceptor
+        const message = error instanceof Error ? error.message : String(error);
+        if (Date.now() - startTime > maxWaitTime * 1000) {
+          return {
+            content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts: ${message}` }],
+            isError: true,
+          };
+        }
+      }
+
+      // Check timeout
+      if (Date.now() - startTime > maxWaitTime * 1000) {
+        return {
+          content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts` }],
+          isError: true,
+        };
+      }
+
+      // Wait before next poll with exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay * 1.5, maxDelay);
+    }
+  }
+);
+
+// Waiter Tool: wait-for-policy-engine-deleted
+// Polls get-policy-engine until PolicyEngineDeleted condition is met
+server.registerTool(
+  "wait-for-policy-engine-deleted",
+  {
+    description: "Wait until a PolicyEngine is deleted (polls every 2-120s)",
+    inputSchema: z.object({
+      ...z.object({
+    policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy engine to be retrieved. This must be a valid policy engine ID that exists within the account."),
+  }).shape,
+      maxWaitTime: z.number().int().optional().describe("Maximum time to wait in seconds (default: 300)"),
+    }),
+  },
+  async (params) => {
+    const maxWaitTime = (params.maxWaitTime as number) || 300;
+    const startTime = Date.now();
+    let delay = 2 * 1000;
+    const maxDelay = 120 * 1000;
+    let attempts = 0;
+
+    const checkAcceptors = (result: unknown): "success" | "failure" | "retry" => {
+      const r = result as Record<string, unknown>;
+      // Error type matcher: ResourceNotFoundException
+        if (result?.status === "DELETING") return "retry";
+        if (result?.status === "DELETE_FAILED") return "failure";
+      return "retry";
+    };
+
+    while (true) {
+      attempts++;
+      try {
+        const pathParams = {
+              policyEngineId: String(params.policyEngineId),
+            };
+      const result = await callApi("GET", "/policy-engines/{policyEngineId}", undefined, pathParams, undefined);
+        const state = checkAcceptors(result);
+        if (state === "success") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "success", attempts, result }, null, 2) }],
+          };
+        }
+        if (state === "failure") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "failure", attempts, result }, null, 2) }],
+            isError: true,
+          };
+        }
+      } catch (error) {
+        // Check if error matches any failure acceptor
+        const message = error instanceof Error ? error.message : String(error);
+        if (Date.now() - startTime > maxWaitTime * 1000) {
+          return {
+            content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts: ${message}` }],
+            isError: true,
+          };
+        }
+      }
+
+      // Check timeout
+      if (Date.now() - startTime > maxWaitTime * 1000) {
+        return {
+          content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts` }],
+          isError: true,
+        };
+      }
+
+      // Wait before next poll with exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay * 1.5, maxDelay);
+    }
+  }
+);
+
 // Tool: update-policy-engine
 server.registerTool(
   "update-policy-engine",
@@ -2377,6 +2601,82 @@ server.registerTool(
   }
 );
 
+// Waiter Tool: wait-for-policy-generation-completed
+// Polls get-policy-generation until PolicyGenerationCompleted condition is met
+server.registerTool(
+  "wait-for-policy-generation-completed",
+  {
+    description: "Wait until policy generation is completed (polls every 2-120s)",
+    inputSchema: z.object({
+      ...z.object({
+    policyGenerationId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy generation request to be retrieved. This must be a valid generation ID from a previous StartPolicyGeneration call."),
+    policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The identifier of the policy engine associated with the policy generation request. This provides the context for the generation operation and schema validation."),
+  }).shape,
+      maxWaitTime: z.number().int().optional().describe("Maximum time to wait in seconds (default: 300)"),
+    }),
+  },
+  async (params) => {
+    const maxWaitTime = (params.maxWaitTime as number) || 300;
+    const startTime = Date.now();
+    let delay = 2 * 1000;
+    const maxDelay = 120 * 1000;
+    let attempts = 0;
+
+    const checkAcceptors = (result: unknown): "success" | "failure" | "retry" => {
+      const r = result as Record<string, unknown>;
+      if (result?.status === "GENERATED") return "success";
+        if (result?.status === "GENERATING") return "retry";
+        if (result?.status === "GENERATE_FAILED") return "failure";
+        if (result?.status === "DELETE_FAILED") return "failure";
+      return "retry";
+    };
+
+    while (true) {
+      attempts++;
+      try {
+        const pathParams = {
+              policyGenerationId: String(params.policyGenerationId),
+              policyEngineId: String(params.policyEngineId),
+            };
+      const result = await callApi("GET", "/policy-engines/{policyEngineId}/policy-generations/{policyGenerationId}", undefined, pathParams, undefined);
+        const state = checkAcceptors(result);
+        if (state === "success") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "success", attempts, result }, null, 2) }],
+          };
+        }
+        if (state === "failure") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "failure", attempts, result }, null, 2) }],
+            isError: true,
+          };
+        }
+      } catch (error) {
+        // Check if error matches any failure acceptor
+        const message = error instanceof Error ? error.message : String(error);
+        if (Date.now() - startTime > maxWaitTime * 1000) {
+          return {
+            content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts: ${message}` }],
+            isError: true,
+          };
+        }
+      }
+
+      // Check timeout
+      if (Date.now() - startTime > maxWaitTime * 1000) {
+        return {
+          content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts` }],
+          isError: true,
+        };
+      }
+
+      // Wait before next poll with exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay * 1.5, maxDelay);
+    }
+  }
+);
+
 // Tool: list-policy-generations
 server.registerTool(
   "list-policy-generations",
@@ -2513,6 +2813,157 @@ server.registerTool(
         content: [{ type: "text", text: `Error: ${message}` }],
         isError: true,
       };
+    }
+  }
+);
+
+// Waiter Tool: wait-for-policy-active
+// Polls get-policy until PolicyActive condition is met
+server.registerTool(
+  "wait-for-policy-active",
+  {
+    description: "Wait until a Policy is active (polls every 2-120s)",
+    inputSchema: z.object({
+      ...z.object({
+    policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The identifier of the policy engine that manages the policy to be retrieved."),
+    policyId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy to be retrieved. This must be a valid policy ID that exists within the specified policy engine."),
+  }).shape,
+      maxWaitTime: z.number().int().optional().describe("Maximum time to wait in seconds (default: 300)"),
+    }),
+  },
+  async (params) => {
+    const maxWaitTime = (params.maxWaitTime as number) || 300;
+    const startTime = Date.now();
+    let delay = 2 * 1000;
+    const maxDelay = 120 * 1000;
+    let attempts = 0;
+
+    const checkAcceptors = (result: unknown): "success" | "failure" | "retry" => {
+      const r = result as Record<string, unknown>;
+      if (result?.status === "ACTIVE") return "success";
+        if (result?.status === "CREATE_FAILED") return "failure";
+        if (result?.status === "UPDATE_FAILED") return "failure";
+        if (result?.status === "DELETE_FAILED") return "failure";
+      return "retry";
+    };
+
+    while (true) {
+      attempts++;
+      try {
+        const pathParams = {
+              policyEngineId: String(params.policyEngineId),
+              policyId: String(params.policyId),
+            };
+      const result = await callApi("GET", "/policy-engines/{policyEngineId}/policies/{policyId}", undefined, pathParams, undefined);
+        const state = checkAcceptors(result);
+        if (state === "success") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "success", attempts, result }, null, 2) }],
+          };
+        }
+        if (state === "failure") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "failure", attempts, result }, null, 2) }],
+            isError: true,
+          };
+        }
+      } catch (error) {
+        // Check if error matches any failure acceptor
+        const message = error instanceof Error ? error.message : String(error);
+        if (Date.now() - startTime > maxWaitTime * 1000) {
+          return {
+            content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts: ${message}` }],
+            isError: true,
+          };
+        }
+      }
+
+      // Check timeout
+      if (Date.now() - startTime > maxWaitTime * 1000) {
+        return {
+          content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts` }],
+          isError: true,
+        };
+      }
+
+      // Wait before next poll with exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay * 1.5, maxDelay);
+    }
+  }
+);
+
+// Waiter Tool: wait-for-policy-deleted
+// Polls get-policy until PolicyDeleted condition is met
+server.registerTool(
+  "wait-for-policy-deleted",
+  {
+    description: "Wait until a Policy is deleted (polls every 2-120s)",
+    inputSchema: z.object({
+      ...z.object({
+    policyEngineId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The identifier of the policy engine that manages the policy to be retrieved."),
+    policyId: z.string().min(12).max(59).regex(new RegExp("^[A-Za-z][A-Za-z0-9_]*-[a-z0-9_]{10}$")).describe("The unique identifier of the policy to be retrieved. This must be a valid policy ID that exists within the specified policy engine."),
+  }).shape,
+      maxWaitTime: z.number().int().optional().describe("Maximum time to wait in seconds (default: 300)"),
+    }),
+  },
+  async (params) => {
+    const maxWaitTime = (params.maxWaitTime as number) || 300;
+    const startTime = Date.now();
+    let delay = 2 * 1000;
+    const maxDelay = 120 * 1000;
+    let attempts = 0;
+
+    const checkAcceptors = (result: unknown): "success" | "failure" | "retry" => {
+      const r = result as Record<string, unknown>;
+      // Error type matcher: ResourceNotFoundException
+        if (result?.status === "DELETING") return "retry";
+        if (result?.status === "DELETE_FAILED") return "failure";
+      return "retry";
+    };
+
+    while (true) {
+      attempts++;
+      try {
+        const pathParams = {
+              policyEngineId: String(params.policyEngineId),
+              policyId: String(params.policyId),
+            };
+      const result = await callApi("GET", "/policy-engines/{policyEngineId}/policies/{policyId}", undefined, pathParams, undefined);
+        const state = checkAcceptors(result);
+        if (state === "success") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "success", attempts, result }, null, 2) }],
+          };
+        }
+        if (state === "failure") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "failure", attempts, result }, null, 2) }],
+            isError: true,
+          };
+        }
+      } catch (error) {
+        // Check if error matches any failure acceptor
+        const message = error instanceof Error ? error.message : String(error);
+        if (Date.now() - startTime > maxWaitTime * 1000) {
+          return {
+            content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts: ${message}` }],
+            isError: true,
+          };
+        }
+      }
+
+      // Check timeout
+      if (Date.now() - startTime > maxWaitTime * 1000) {
+        return {
+          content: [{ type: "text", text: `Waiter timed out after ${attempts} attempts` }],
+          isError: true,
+        };
+      }
+
+      // Wait before next poll with exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay * 1.5, maxDelay);
     }
   }
 );

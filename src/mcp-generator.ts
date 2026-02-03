@@ -1,4 +1,4 @@
-import { ParsedService, ParsedOperation, JsonSchema, ParsedMember } from "./smithy-parser.js";
+import { ParsedService, ParsedOperation, JsonSchema, ParsedMember, WaiterConfig } from "./smithy-parser.js";
 
 export interface GeneratorOptions {
   serverName?: string;
@@ -257,6 +257,13 @@ async function callApi<T>(
 
     for (const operation of service.operations) {
       tools.push(this.generateTool(operation));
+
+      // Generate waiter tools for operations with waiters
+      if (operation.waiters) {
+        for (const waiter of operation.waiters) {
+          tools.push(this.generateWaiterTool(operation, waiter));
+        }
+      }
     }
 
     return tools.join("\n\n");
@@ -312,6 +319,137 @@ server.registerTool(
     }
   }
 );`;
+  }
+
+  private generateWaiterTool(operation: ParsedOperation, waiter: WaiterConfig): string {
+    const waiterToolName = `wait-for-${this.waiterNameToToolName(waiter.name)}`;
+    const baseToolName = this.operationToToolName(operation.name);
+    const description = waiter.documentation || `Wait until ${waiter.name} condition is met by polling ${operation.name}`;
+
+    // Build success/failure conditions for the description
+    const successConditions: string[] = [];
+    const failureConditions: string[] = [];
+    for (const acceptor of waiter.acceptors) {
+      if (acceptor.matcher.output) {
+        const condition = `${acceptor.matcher.output.path} ${acceptor.matcher.output.comparator} "${acceptor.matcher.output.expected}"`;
+        if (acceptor.state === "success") {
+          successConditions.push(condition);
+        } else if (acceptor.state === "failure") {
+          failureConditions.push(condition);
+        }
+      }
+    }
+
+    const zodSchema = this.generateZodSchema(operation);
+    const apiCall = this.generateApiCall(operation);
+
+    // Generate the acceptor check logic
+    const acceptorChecks = waiter.acceptors.map((acceptor) => {
+      if (acceptor.matcher.output) {
+        const { path, expected, comparator } = acceptor.matcher.output;
+        const pathParts = path.split(".");
+        let accessor = "result";
+        for (const part of pathParts) {
+          accessor = `${accessor}?.${part}`;
+        }
+
+        let condition: string;
+        switch (comparator) {
+          case "stringEquals":
+          case "booleanEquals":
+            condition = `${accessor} === ${JSON.stringify(expected)}`;
+            break;
+          case "allStringEquals":
+            condition = `Array.isArray(${accessor}) && ${accessor}.every((v: string) => v === ${JSON.stringify(expected)})`;
+            break;
+          case "anyStringEquals":
+            condition = `Array.isArray(${accessor}) && ${accessor}.some((v: string) => v === ${JSON.stringify(expected)})`;
+            break;
+          default:
+            condition = `${accessor} === ${JSON.stringify(expected)}`;
+        }
+
+        return `if (${condition}) return "${acceptor.state}";`;
+      }
+      if (acceptor.matcher.errorType) {
+        return `// Error type matcher: ${acceptor.matcher.errorType}`;
+      }
+      return "";
+    }).filter(Boolean).join("\n        ");
+
+    return `// Waiter Tool: ${waiterToolName}
+// Polls ${baseToolName} until ${waiter.name} condition is met
+server.registerTool(
+  "${waiterToolName}",
+  {
+    description: ${JSON.stringify(description + ` (polls every ${waiter.minDelay}-${waiter.maxDelay}s)`)},
+    inputSchema: z.object({
+      ...${zodSchema}.shape,
+      maxWaitTime: z.number().int().optional().describe("Maximum time to wait in seconds (default: 300)"),
+    }),
+  },
+  async (params) => {
+    const maxWaitTime = (params.maxWaitTime as number) || 300;
+    const startTime = Date.now();
+    let delay = ${waiter.minDelay} * 1000;
+    const maxDelay = ${waiter.maxDelay} * 1000;
+    let attempts = 0;
+
+    const checkAcceptors = (result: unknown): "success" | "failure" | "retry" => {
+      const r = result as Record<string, unknown>;
+      ${acceptorChecks}
+      return "retry";
+    };
+
+    while (true) {
+      attempts++;
+      try {
+        ${apiCall}
+        const state = checkAcceptors(result);
+        if (state === "success") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "success", attempts, result }, null, 2) }],
+          };
+        }
+        if (state === "failure") {
+          return {
+            content: [{ type: "text", text: JSON.stringify({ status: "failure", attempts, result }, null, 2) }],
+            isError: true,
+          };
+        }
+      } catch (error) {
+        // Check if error matches any failure acceptor
+        const message = error instanceof Error ? error.message : String(error);
+        if (Date.now() - startTime > maxWaitTime * 1000) {
+          return {
+            content: [{ type: "text", text: \`Waiter timed out after \${attempts} attempts: \${message}\` }],
+            isError: true,
+          };
+        }
+      }
+
+      // Check timeout
+      if (Date.now() - startTime > maxWaitTime * 1000) {
+        return {
+          content: [{ type: "text", text: \`Waiter timed out after \${attempts} attempts\` }],
+          isError: true,
+        };
+      }
+
+      // Wait before next poll with exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay * 1.5, maxDelay);
+    }
+  }
+);`;
+  }
+
+  private waiterNameToToolName(waiterName: string): string {
+    // Convert PascalCase to kebab-case
+    return waiterName
+      .replace(/([A-Z])/g, "-$1")
+      .toLowerCase()
+      .replace(/^-/, "");
   }
 
   private operationToToolName(operationName: string): string {
